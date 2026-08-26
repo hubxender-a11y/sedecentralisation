@@ -1,0 +1,12 @@
+const XLSX = require('xlsx');
+const path = require('path');
+const file = path.join(process.cwd(), 'LISTE GENERALE DES AGENTS OK.xlsx');
+const wb = XLSX.readFile(file);
+const sheetName = wb.SheetNames[0];
+const sheet = wb.Sheets[sheetName];
+const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+console.log('sheet:', sheetName);
+console.log('headers:', JSON.stringify(rows[0]));
+console.log('sample rows:');
+rows.slice(1, 6).forEach((row, i) => console.log(i + 1, JSON.stringify(row)));
+console.log('total rows:', rows.length - 1);

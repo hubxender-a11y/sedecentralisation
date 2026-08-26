@@ -1,0 +1,60 @@
+.presence-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 32px;
+  margin-bottom: 16px;
+  color: #7f1d1d;
+  background: #fff;
+  border: 1px solid #fee2e2;
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(220, 38, 38, .08);
+}
+.presence-kicker { color: #dc2626; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+.presence-hero h1 { margin: 7px 0 5px; color: #7f1d1d; font-size: clamp(25px, 3vw, 36px); }
+.presence-hero p { margin: 0; max-width: 620px; color: #991b1b; font-size: 14px; }
+.presence-export, .presence-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; cursor: pointer; font-weight: 800; }
+.presence-export { padding: 12px 16px; color: #fff; background: #dc2626; border-radius: 10px; white-space: nowrap; }
+.presence-export:hover { background: #991b1b; }
+.presence-toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; padding: 18px; background: #fff; border: 1px solid #fee2e2; border-radius: 14px; box-shadow: 0 10px 25px rgba(220, 38, 38, .08); }
+.presence-field label { display: block; margin-bottom: 7px; color: #7f1d1d; font-size: 12px; font-weight: 800; }
+.presence-field select, .presence-search { width: 100%; min-height: 44px; padding: 0 12px; color: #1f2937; background: #fff7f7; border: 1px solid #fecaca; border-radius: 9px; font-size: 14px; }
+.presence-field select { padding: 0 10px; }
+.presence-search { display: flex; align-items: center; gap: 9px; }
+.presence-search svg { color: #dc2626; flex: 0 0 auto; }
+.presence-search input { width: 100%; border: 0; outline: 0; background: transparent; color: #172033; }
+.presence-overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+.presence-date, .presence-metric, .presence-status { display: flex; align-items: center; gap: 11px; min-height: 74px; padding: 14px; background: #fff; border: 1px solid #fee2e2; border-radius: 12px; box-shadow: 0 10px 25px rgba(220, 38, 38, .05); }
+.presence-date svg, .presence-metric svg { color: #dc2626; }
+.presence-date span, .presence-metric span, .presence-status span { display: block; color: #64748b; font-size: 11px; font-weight: 700; }
+.presence-date strong, .presence-metric strong, .presence-status strong { display: block; margin-top: 4px; color: #7f1d1d; font-size: 15px; }
+.presence-status.is-open { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
+.presence-status.is-open svg { color: #16a34a; }
+.presence-status.is-closed { color: #b91c1c; border-color: #fecaca; background: #fff7f7; }
+.presence-status.is-closed svg { color: #dc2626; }
+.presence-alert { display: flex; align-items: center; gap: 9px; padding: 12px 15px; margin-bottom: 12px; border-radius: 10px; font-size: 14px; font-weight: 700; }
+.presence-alert.success { color: #166534; background: #dcfce7; border: 1px solid #bbf7d0; }
+.presence-alert.error { color: #991b1b; background: #fee2e2; border: 1px solid #fecaca; }
+.presence-list-card { overflow: hidden; background: #fff; border: 1px solid #fee2e2; border-radius: 14px; box-shadow: 0 10px 25px rgba(220, 38, 38, .08); }
+.presence-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid #fee2e2; }
+.presence-list-heading h2 { margin: 0; color: #7f1d1d; font-size: 18px; }
+.presence-list-heading p { margin: 4px 0 0; color: #991b1b; font-size: 12px; }
+.presence-window { display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px; color: #991b1b; background: #fff1f2; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.presence-window i { width: 4px; height: 4px; background: #dc2626; border-radius: 50%; }
+.presence-table { width: 100%; border-collapse: collapse; text-align: left; }
+.presence-table th { padding: 12px 20px; color: #7f1d1d; background: #fff7f7; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+.presence-table td { padding: 14px 20px; color: #334155; border-top: 1px solid #eef2f7; font-size: 13px; }
+.presence-table tr:hover { background: #fff7f7; }
+.presence-bureau-list { display: flex; flex-wrap: wrap; gap: 6px; max-width: 360px; }
+.presence-bureau-list span { padding: 4px 8px; color: #991b1b; background: #fff1f2; border: 1px solid #fee2e2; border-radius: 6px; font-size: 11px; font-weight: 700; }
+.presence-action { min-width: 108px; padding: 8px 11px; color: #fff; background: #dc2626; border-radius: 8px; font-size: 12px; }
+.presence-action:hover:not(:disabled) { background: #991b1b; }
+.presence-action:disabled { color: #64748b; background: #e2e8f0; cursor: not-allowed; }
+.presence-empty { padding: 42px 24px; color: #64748b; text-align: center; }
+@media (max-width: 800px) {
+  .presence-hero { align-items: flex-start; flex-direction: column; padding: 22px; }
+  .presence-toolbar, .presence-overview { grid-template-columns: 1fr; }
+  .presence-list-heading { align-items: flex-start; flex-direction: column; }
+  .presence-table { min-width: 700px; }
+}

@@ -1,0 +1,1122 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 3187
+>>
+stream
+0.200025 w
+0 G
+BT
+/F2 24 Tf
+27.5999999999999979 TL
+0 g
+40. 801.8899999999999864 Td
+(Documentation du logiciel - Kna+) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 767.8899999999999864 Td
+(Cette documentation présente le logiciel de gestion des agents de l'État, ses fonctionnalités principales,) Tj
+T* (son architecture, son installation, et les flux de travail clefs pour la démonstration et la présentation.) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0 g
+514.5099999999999909 20. Td
+(Page 1 / 4) Tj
+ET
+BT
+/F2 24 Tf
+27.5999999999999979 TL
+0 g
+40. 801.8899999999999864 Td
+(Table des matières) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 767.8899999999999864 Td
+(1. Présentation générale) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 767.8899999999999864 Td
+(2) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 751.8899999999999864 Td
+(2. Architecture technique) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 751.8899999999999864 Td
+(2) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 735.8899999999999864 Td
+(3. Installation et exécution) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 735.8899999999999864 Td
+(2) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 719.8899999999999864 Td
+(4. Structure des pages principales) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 719.8899999999999864 Td
+(2) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 703.8899999999999864 Td
+(5. Workflow des agents) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 703.8899999999999864 Td
+(2) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 687.8899999999999864 Td
+(6. Notifications) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 687.8899999999999864 Td
+(3) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 671.8899999999999864 Td
+(7. Stockage des documents) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 671.8899999999999864 Td
+(3) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 655.8899999999999864 Td
+(8. Détails fonctionnels) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 655.8899999999999864 Td
+(3) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 639.8899999999999864 Td
+(9. Points techniques spécifiques) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 639.8899999999999864 Td
+(3) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 623.8899999999999864 Td
+(10. Présentation à montrer) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 623.8899999999999864 Td
+(3) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 607.8899999999999864 Td
+(11. Fichiers et composants clés) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 607.8899999999999864 Td
+(3) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 591.8899999999999864 Td
+(12. Flux de données techniques) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 591.8899999999999864 Td
+(4) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 575.8899999999999864 Td
+(13. Recommandations et évolutions) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+549.2300000000000182 575.8899999999999864 Td
+(4) Tj
+ET
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 5429
+>>
+stream
+0.200025 w
+0 G
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 801.8899999999999864 Td
+(1. Présentation générale) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 777.8899999999999864 Td
+(Le projet est une application web de gestion de dossiers agent, construite avec Next.js 15, React 19 et) Tj
+T* (Prisma. Il permet de créer des agents, gérer des documents, suivre le statut des dossiers, et afficher des) Tj
+T* (notifications de vérification.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 719.8899999999999864 Td
+(2. Architecture technique) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 695.8899999999999864 Td
+(L'architecture repose sur Next.js App Router avec des pages React côté client et des routes API côté) Tj
+T* (serveur. La logique métier est séparée entre les pages de l'interface, les APIs de gestion des données, et) Tj
+T* (les helpers de stockage de fichiers. Prisma gère l'accès à la base de données et le schéma, tandis que le) Tj
+T* (stockage des fichiers est directement exposé via le dossier public/uploads.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 621.8899999999999864 Td
+(• Frontend: Next.js App Router, composants React avec `use client` pour les interactions.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 605.8899999999999864 Td
+(• Backend: routes API dans app/api pour les agents, documents, notifications et recherche.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 589.8899999999999864 Td
+(• Base de données: Prisma avec MariaDB/MySQL, plus fallback mémoire possible via lib/dbService.ts.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 573.8899999999999864 Td
+(• Stockage de fichiers: dossier public/uploads, accessible statiquement via /uploads.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 557.8899999999999864 Td
+(• Documentation PDF: génération locale avec jsPDF et Node.js.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 533.8899999999999864 Td
+(3. Installation et exécution) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 509.8899999999999864 Td
+(Ce projet fonctionne dans un environnement Node.js moderne sur Windows ou Linux. La configuration) Tj
+T* (minimale inclut Node.js 20+ et npm. Le démarrage local se fait via npm run dev, et les variables) Tj
+T* (d'environnement principales sont configurées dans .env.local.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 451.8899999999999864 Td
+(• Installer les dépendances: npm install) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 435.8899999999999864 Td
+(• Créer le fichier .env.local et ajouter les variables nécessaires \(par exemple DATABASE_URL,) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 419.8899999999999864 Td
+(  GEMINI_API_KEY\).) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 403.8899999999999864 Td
+(• Lancer le serveur: npm run dev) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 387.8899999999999864 Td
+(• Accéder à l'application: http://localhost:3000) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 371.8899999999999864 Td
+(• Recharger le projet après modification des fichiers source.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 347.8899999999999864 Td
+(4. Structure des pages principales) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 323.8899999999999864 Td
+(• app/agents/page.tsx: vue principale de la liste des agents, filtres d'état, actions de validation et) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 307.8899999999999864 Td
+(  paiement.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 291.8899999999999864 Td
+(• app/agents/create/page.tsx: formulaire de création d'un nouvel agent avec direction et informations) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 275.8899999999999864 Td
+(  personnelles.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 259.8899999999999864 Td
+(• app/agents/[id]/page.tsx: détail d'un dossier agent, upload de documents, statut et actions) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 243.8899999999999864 Td
+(  contextuelles.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 227.8899999999999864 Td
+(• app/documents/page.tsx: gestion documentaire centralisée avec recherche par agent et direction.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 211.8899999999999864 Td
+(• app/api/documents/upload/route.ts: API de réception multipart/form-data pour enregistrer les fichiers.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 187.8899999999999864 Td
+(5. Workflow des agents) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 163.8899999999999864 Td
+(Lorsqu'un agent est créé, le dossier est automatiquement placé en statut VERIFICATION. Le workflow) Tj
+T* (autorise ensuite la validation ou le rejet du dossier par l'administrateur. Les actions disponibles dans) Tj
+T* (l'interface changent en fonction du statut pour éviter les incohérences.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 105.8899999999999864 Td
+(• Création: statut initial VERIFICATION.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 89.8899999999999864 Td
+(• Validation: statut VALIDE, badge vert et visibilité de paiement possible.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 73.8899999999999864 Td
+(• Rejet: statut REJETE, actions limitées pour empêcher la validation.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 57.8899999999999864 Td
+(• Paiement: état PAYE / NON_PAYE séparé du statut de dossier.) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0 g
+514.5099999999999909 20. Td
+(Page 2 / 4) Tj
+ET
+endstream
+endobj
+7 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 6102
+>>
+stream
+0.200025 w
+0 G
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 801.8899999999999864 Td
+(6. Notifications) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 777.8899999999999864 Td
+(Les notifications métiers ciblent les dossiers en vérification. Cette stratégie améliore le suivi du processus) Tj
+T* (de contrôle de conformité et met en avant les dossiers qui nécessitent une action administrative.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 735.8899999999999864 Td
+(• Filtre de notification: statut VERIFICATION uniquement.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 719.8899999999999864 Td
+(• Interface: badge et lien direct vers le dossier agent.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 703.8899999999999864 Td
+(• Alerte métier: priorisation des dossiers non encore traités.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 679.8899999999999864 Td
+(7. Stockage des documents) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 655.8899999999999864 Td
+(Les documents sont déposés dans public/uploads selon une arborescence direction/agent. Le dossier) Tj
+T* (agent est construit à partir du nom complet et de l'identifiant pour garantir lisibilité et unicité, puis le fichier) Tj
+T* (est renommé avec timestamp.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 597.8899999999999864 Td
+(• Répertoire agent: `safeAgentName-agentId` généré par lib/documentStorage.ts.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 581.8899999999999864 Td
+(• Exemple: public/uploads/Direction_Generale/mary-claire-mbuyi-ag-123456/) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 565.8899999999999864 Td
+(• Normalisation: suppression des caractères spéciaux et espaces convertis en tirets.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 549.8899999999999864 Td
+(• Téléchargement: URLs accessibles via /uploads/... sur le serveur Next.js.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 525.8899999999999864 Td
+(8. Détails fonctionnels) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 501.8899999999999864 Td
+(• Recherche d'agents par nom, matricule et téléphone.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 485.8899999999999864 Td
+(• Filtres par direction, statut de dossier et paiement.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 469.8899999999999864 Td
+(• Affichage de cartes agents et du gestionnaire documentaire.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 453.8899999999999864 Td
+(• Ouverture et téléchargement sécurisés des fichiers uploadés.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 437.8899999999999864 Td
+(• Badges de statut explicites: VALIDÉ, EN VÉRIFICATION, REJETÉ.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 413.8899999999999864 Td
+(9. Points techniques spécifiques) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 389.8899999999999864 Td
+(• Nom du dossier agent = nom complet + identifiant unique.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 373.8899999999999864 Td
+(• Statut d'agent par défaut = VERIFICATION à la création.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 357.8899999999999864 Td
+(• Notifications basées sur le statut VERIFICATION plutôt que le paiement.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 341.8899999999999864 Td
+(• Gestion des liens de fichiers uniquement si l'URL est valide.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 325.8899999999999864 Td
+(• UI conditionnelle sur la page de détail agent selon le statut du dossier.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 301.8899999999999864 Td
+(10. Présentation à montrer) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 277.8899999999999864 Td
+(• Démonstration de la création d'agent et du statut initial VERIFICATION.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 261.8899999999999864 Td
+(• Upload d'un document et validation de l'ouverture depuis le gestionnaire documentaire.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 245.8899999999999864 Td
+(• Affichage des badges VALIDÉ / EN VÉRIFICATION / REJETÉ dans l'interface.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 229.8899999999999864 Td
+(• Navigation vers les notifications de vérification.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 213.8899999999999864 Td
+(• Consultation de l'arborescence public/uploads pour vérifier le stockage.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 189.8899999999999864 Td
+(11. Fichiers et composants clés) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 165.8899999999999864 Td
+(• lib/documentStorage.ts: création des dossiers direction/agent, normalisation des noms, génération) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 149.8899999999999864 Td
+(  d'URL de document.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 133.8899999999999864 Td
+(• lib/prisma.ts: configuration Prisma et initialisation du client.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 117.8899999999999864 Td
+(• lib/dbService.ts: abstraction de l'accès aux données et fallback mémoire.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 101.8899999999999864 Td
+(• app/api/agents/route.ts: création, lecture et mise à jour des agents avec statut par défaut) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 85.8899999999999864 Td
+(  VERIFICATION.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 69.8899999999999864 Td
+(• app/api/documents/upload/route.ts: réception des fichiers multipart et stockage physique.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 53.8899999999999864 Td
+(• app/api/agents/notifications/route.ts: notifications filtrées sur les dossiers en VERIFICATION.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 37.8899999999999864 Td
+(• app/documents/page.tsx: interface de gestion documentaire centrale, recherche et liens de) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 21.8899999999999864 Td
+(  téléchargement.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 5.8899999999999864 Td
+(• app/agents/[id]/page.tsx: détail du dossier agent, affichage des documents et actions métier.) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0 g
+514.5099999999999909 20. Td
+(Page 3 / 4) Tj
+ET
+endstream
+endobj
+9 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 10 0 R
+>>
+endobj
+10 0 obj
+<<
+/Length 1700
+>>
+stream
+0.200025 w
+0 G
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 801.8899999999999864 Td
+(12. Flux de données techniques) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 777.8899999999999864 Td
+(• Création d'agent: formulaire -> API /api/agents -> base de données -> statut VERIFICATION.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 761.8899999999999864 Td
+(• Upload document: formulaire de fichier -> API /api/documents/upload -> stockage public/uploads ->) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 745.8899999999999864 Td
+(  URL publique.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 729.8899999999999864 Td
+(• Notifications: requête API /api/agents/notifications -> filtre sur statut VERIFICATION -> affichage.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 713.8899999999999864 Td
+(• Affichage documents: lecture des fichiers stockés et génération d'URL via utils de storage.) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+40. 689.8899999999999864 Td
+(13. Recommandations et évolutions) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 665.8899999999999864 Td
+(• Ajouter un stockage cloud \(Azure Blob / S3\) pour la production.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 649.8899999999999864 Td
+(• Mettre en place une authentification et une autorisation plus fine.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 633.8899999999999864 Td
+(• Ajouter des tests automatisés pour les APIs et le service de stockage de documents.) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+40. 617.8899999999999864 Td
+(• Générer des miniatures ou des aperçus pour les documents uploadés.) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0 g
+514.5099999999999909 20. Td
+(Page 4 / 4) Tj
+ET
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R 7 0 R 9 0 R ]
+/Count 4
+>>
+endobj
+11 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+12 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+13 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+14 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+15 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+16 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+18 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+19 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+20 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+21 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+22 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+23 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+24 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 11 0 R
+/F2 12 0 R
+/F3 13 0 R
+/F4 14 0 R
+/F5 15 0 R
+/F6 16 0 R
+/F7 17 0 R
+/F8 18 0 R
+/F9 19 0 R
+/F10 20 0 R
+/F11 21 0 R
+/F12 22 0 R
+/F13 23 0 R
+/F14 24 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+25 0 obj
+<<
+/Producer (jsPDF 4.2.1)
+/CreationDate (D:20260727031447+01'00')
+>>
+endobj
+26 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 27
+0000000000 65535 f 
+0000017191 00000 n 
+0000019031 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000003391 00000 n 
+0000003528 00000 n 
+0000009009 00000 n 
+0000009146 00000 n 
+0000015300 00000 n 
+0000015438 00000 n 
+0000017266 00000 n 
+0000017392 00000 n 
+0000017523 00000 n 
+0000017657 00000 n 
+0000017795 00000 n 
+0000017919 00000 n 
+0000018048 00000 n 
+0000018180 00000 n 
+0000018316 00000 n 
+0000018444 00000 n 
+0000018571 00000 n 
+0000018700 00000 n 
+0000018833 00000 n 
+0000018935 00000 n 
+0000019284 00000 n 
+0000019370 00000 n 
+trailer
+<<
+/Size 27
+/Root 26 0 R
+/Info 25 0 R
+/ID [ <4B2681AEEADCAB055601D97A54A07753> <4B2681AEEADCAB055601D97A54A07753> ]
+>>
+startxref
+19474
+%%EOF

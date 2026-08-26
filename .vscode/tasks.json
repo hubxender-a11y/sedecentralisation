@@ -1,0 +1,274 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build-kana",
+			"type": "shell",
+			"command": "npm run build",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build-kana",
+			"type": "shell",
+			"command": "npm run build",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "inspect-xlsx",
+			"type": "shell",
+			"command": "node tmp-inspect-xlsx.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "build-kana",
+			"type": "shell",
+			"command": "npm run build",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "import-agents",
+			"type": "shell",
+			"command": "npx tsx tmp-import-agents.ts",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "install-tsx",
+			"type": "shell",
+			"command": "npm install -D tsx",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "import-agents",
+			"type": "shell",
+			"command": "npx tsx tmp-import-agents.ts",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "import-agents",
+			"type": "shell",
+			"command": "npx --yes tsx tmp-import-agents.ts",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "import-agents",
+			"type": "shell",
+			"command": "./node_modules/.bin/tsx tmp-import-agents.ts",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "check-tsx",
+			"type": "shell",
+			"command": "npm ls tsx --depth=0",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "import-agents",
+			"type": "shell",
+			"command": "node ./node_modules/tsx/dist/cli.mjs tmp-import-agents.ts",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-tsx-bin",
+			"type": "shell",
+			"command": "./node_modules/.bin/tsx.cmd --version",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "import-agents",
+			"type": "shell",
+			"command": "./node_modules/.bin/tsx.cmd tmp-import-agents.ts",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "import-agents-direct",
+			"type": "shell",
+			"command": "node .\\node_modules\\tsx\\dist\\cli.mjs .\\tmp-import-agents.ts",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-import",
+			"type": "shell",
+			"command": "node .\\tmp-check-agents.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-import-data",
+			"type": "shell",
+			"command": "node -e \"const fs=require('fs');const path=require('path');const p=path.join(process.cwd(),'data','db.json');console.log(p,fs.existsSync(p));if(fs.existsSync(p)){const data=JSON.parse(fs.readFileSync(p,'utf8'));console.log('agentsInFile', Array.isArray(data.agents)?data.agents.length:'n/a'); console.log(JSON.stringify(data.agents?.slice(0,3).map(a=>({id:a.id,nom:a.nom,prenom:a.prenom,service:a.service,directionNom:a.directionNom})),null,2));}\"",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-import-data",
+			"type": "shell",
+			"command": "node .\\tmp-check-db.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "build-kana",
+			"type": "shell",
+			"command": "npm run build",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build-kana",
+			"type": "shell",
+			"command": "npm run build",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "clean-admin-users",
+			"type": "shell",
+			"command": "node .\\tmp-clean-admins.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "clean-admin-users",
+			"type": "shell",
+			"command": "node .\\tmp-clean-admins.cjs",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "clean-admin-users",
+			"type": "shell",
+			"command": "node .\\tmp-clean-admins.cjs",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "clean-admin-users",
+			"type": "shell",
+			"command": "node .\\\\tmp-clean-admins.cjs",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "clean-admin-users",
+			"type": "shell",
+			"command": "node .\\tmp-clean-admins-final.cjs",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "run-clean-admins-final",
+			"type": "shell",
+			"command": "cmd /c node tmp-clean-admins-final.cjs",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "check-portal-users-schema",
+			"type": "shell",
+			"command": "cmd /c node -e \"const mysql=require('mysql2/promise'); (async()=>{const conn=await mysql.createConnection({host:'localhost',user:'root',database:'sga_kna_db',password:''}); const [rows]=await conn.query('SHOW COLUMNS FROM portal_users'); console.log(JSON.stringify(rows,null,2)); await conn.end();})().catch(err=>{console.error(err); process.exit(1);});\"",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "inspect-portal-users",
+			"type": "shell",
+			"command": "cmd /c node tmp-inspect-portal-users.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-build",
+			"type": "shell",
+			"command": "cmd /c npm run build",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-login-endpoint",
+			"type": "shell",
+			"command": "cmd /c powershell -c \"Invoke-RestMethod -Uri 'http://localhost:3003/api/auth/login' -Method Post -ContentType 'application/json' -Body '{\\\"email\\\":\\\"admin@kna.local\\\",\\\"password\\\":\\\"admin123\\\"}'\"",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-login-endpoint",
+			"type": "shell",
+			"command": "cmd /c node tmp-login-check.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-login-endpoint",
+			"type": "shell",
+			"command": "cmd /c node tmp-login-check.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-login-endpoint",
+			"type": "shell",
+			"command": "cmd /c \"C:\\Program Files\\nodejs\\node.exe\" tmp-login-check.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "verify-login-endpoint",
+			"type": "shell",
+			"command": "cmd /c \"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -Command \\\"$body = '{\\\"email\\\":\\\"admin@kna.local\\\",\\\"password\\\":\\\"admin123\\\"}'; Invoke-RestMethod -Uri 'http://localhost:3003/api/auth/login' -Method Post -ContentType 'application/json' -Body $body\\\"\"",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "check-agent-count",
+			"type": "shell",
+			"command": "cmd /c node tmp-check-agent-count.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "check-agents-prisma",
+			"type": "shell",
+			"command": "cmd /c node tmp-check-agents-prisma.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "check-agents-prisma",
+			"type": "shell",
+			"command": "cmd /c node tmp-check-agents-prisma.js",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "inspect-db",
+			"type": "shell",
+			"command": "cmd /c node tmp-db-inspect.js",
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

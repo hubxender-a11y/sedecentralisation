@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Agent {
+  id              String           @id @default(cuid())
+  nom             String
+  postNom         String?
+  prenom          String
+  dateNaissance   String?
+  sexe            String?
+  nationalite     String?          @default("Congolaise")
+  matricule       String?
+  typeCarte       String?
+  numeroCarte     String?
+  expirationCarte String?
+  lieuDelivrance  String?
+  directionId     String?
+  directionNom    String?
+  serviceId       String?
+  service         String?
+  fonctionId      String?
+  fonctionNom     String?
+  email           String?
+  telephone       String
+  districtId      String?
+  villeId         String?
+  communeId       String?
+  avenue          String?
+  code            String?
+  statut          String           @default("BROUILLON")
+  statutPresence  String           @default("ACTIF")
+  presenceInactiveAt      DateTime?
+  presenceInactiveReason  String?          @db.Text
+  presenceReactivatedAt   DateTime?
+  presenceReactivatedBy   String?          @db.VarChar(100)
+  statutPaiement  String?          @default("NON_PAYE")
+  montantPaiement Float?           @default(0)
+  datePaiement    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  gradeId         String?          @map("gradeStat")
+  divisionId      String?          @db.VarChar(100)
+  divisionNom     String?          @db.VarChar(255)
+  dateEngagement  String?
+  acteEngagement  String?
+  remunerer       String?          @default("NON")
+  prime           String?          @default("NON")
+  montantPrime    Float?           @default(0)
+  documents       DocumentRecord[]
+  presences       Presence[]
+
+  @@map("agents")
+}
+
+model Division {
+  id           String    @id @db.VarChar(100)
+  nom          String    @db.VarChar(255)
+  description  String?   @db.Text
+  statut       String    @default("ACTIF") @db.VarChar(50)
+  createdAt    DateTime  @default(now()) @db.Timestamp(0)
+  directionId  String?   @db.VarChar(100)
+  directionNom String?   @db.VarChar(255)
+  bureaux      Service[]
+
+  @@map("divisions")
+}
+
+model Service {
+  id           String    @id @db.VarChar(100)
+  directionId  String?   @db.VarChar(100)
+  directionNom String?   @db.VarChar(255)
+  nom          String    @db.VarChar(255)
+  divisionId   String?   @db.VarChar(100)
+  divisionNom  String?   @db.VarChar(255)
+  codeService  String?   @db.VarChar(100)
+  description  String?   @db.Text
+  chefService  String?   @db.VarChar(255)
+  statut       String    @default("ACTIF") @db.VarChar(50)
+  createdAt    DateTime  @default(now()) @db.Timestamp(0)
+  divisions    Division? @relation(fields: [divisionId], references: [id])
+
+  @@index([divisionId])
+  @@map("bureaux")
+}
+
+model Fonction {
+  id          String   @id
+  nom         String
+  description String?  @db.Text
+  statut      String   @default("ACTIF")
+  createdAt   DateTime @default(now())
+
+  @@map("fonctions")
+}
+
+model Grade {
+  id          String   @id
+  nom         String
+  description String?  @db.Text
+  statut      String   @default("ACTIF")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@map("grades")
+}
+
+model Direction {
+  id          String   @id
+  nom         String
+  description String?  @db.Text
+  statut      String   @default("ACTIF")
+  createdAt   DateTime @default(now())
+
+  @@map("directions")
+}
+
+model DocumentRecord {
+  id         String   @id @default(cuid())
+  agentId    String
+  name       String
+  size       String
+  type       String
+  url        String   @db.Text
+  uploadedAt DateTime @default(now())
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId], map: "documents_agent_id_idx")
+  @@map("documents")
+}
+
+model Presence {
+  id          String   @id @default(cuid())
+  agentId     String
+  date        String   @db.VarChar(10)
+  heure       DateTime
+  serviceId   String?  @db.VarChar(100)
+  serviceNom  String?  @db.VarChar(255)
+  directionId String?  @db.VarChar(100)
+  directionNom String? @db.VarChar(255)
+  createdBy   String?  @db.VarChar(100)
+  createdAt   DateTime @default(now())
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, date])
+  @@index([date, serviceId])
+  @@map("presences")
+}
+
+model PortalRole {
+  id          String       @id
+  name        String
+  description String?      @db.Text
+  permissions String?      @db.Text
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  users       PortalUser[] @relation("PortalUserRole")
+
+  @@map("portal_roles")
+}
+
+model PortalUser {
+  id                      String      @id
+  fullName                String      @map("full_name")
+  email                   String      @unique
+  password                String
+  roleId                  String?     @map("role_id")
+  permissions             String?     @db.Text
+  status                  String      @default("Actif")
+  createdAt               DateTime    @default(now()) @map("created_at")
+  updatedAt               DateTime    @updatedAt @map("updated_at")
+  directionId             String?     @map("direction_id") @db.VarChar(100)
+  password_reset_required Boolean     @default(false)
+  divisionId              String?     @map("division_id") @db.VarChar(100)
+  divisionNom             String?     @map("division_nom") @db.VarChar(255)
+  serviceId               String?     @map("service_id") @db.VarChar(100)
+  serviceNom              String?     @map("service_nom") @db.VarChar(255)
+  directionNom            String?     @map("direction_nom") @db.VarChar(255)
+  role                    PortalRole? @relation("PortalUserRole", fields: [roleId], references: [id])
+
+  @@index([roleId], map: "portal_users_role_id_idx")
+  @@map("portal_users")
+}
+
+model services {
+  id           String   @id
+  nom          String
+  directionId  String
+  directionNom String?
+  codeService  String?
+  description  String?  @db.Text
+  chefService  String?
+  statut       String   @default("ACTIF")
+  createdAt    DateTime @default(now())
+  divisionId   String?  @db.VarChar(100)
+  divisionNom  String?  @db.VarChar(255)
+}
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  senderId       String
+  senderName     String?
+  content        String?  @db.Text
+  isGroup        Boolean  @default(false)
+  groupId        String?  // directionId or custom group id
+  recipientId    String?  // for private messages (user id)
+  attachmentUrl  String?  @db.Text
+  attachmentName String?
+  attachmentSize Int?
+  attachmentType String?
+  readBy         String?  @db.Text // JSON array of user ids who read
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([senderId])
+  @@map("chat_messages")
+}
