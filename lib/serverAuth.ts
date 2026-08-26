@@ -94,7 +94,7 @@ export function isDirectionScopedUser(user: ServerPortalUser | null | undefined)
 
 export function canManageAgent(
   user: ServerPortalUser | null | undefined,
-  agent?: { directionId?: string; serviceId?: string; service?: string; serviceNom?: string }
+  agent?: { directionId?: string; directionNom?: string; serviceId?: string; service?: string; serviceNom?: string }
 ) {
   if (!user) return false;
   if (['role-super-admin', 'role-admin'].includes(String(user.roleId))) return true;
