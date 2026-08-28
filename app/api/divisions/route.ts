@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerUser } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 function serializeDivision(division: {
   id: string;
@@ -68,6 +69,15 @@ export async function POST(req: NextRequest) {
         statut: typeof body.statut === 'string' && body.statut.trim() ? body.statut : 'ACTIF',
       },
       select: { id: true, directionId: true, directionNom: true, nom: true, description: true, statut: true, createdAt: true },
+    });
+
+    await writeAuditLog({
+      userId: serverUser.id,
+      action: 'CREATE_DIVISION',
+      entityType: 'Division',
+      entityId: created.id,
+      newValue: { nom: created.nom, directionId: created.directionId, statut: created.statut },
+      ipAddress: getRequestIp(req),
     });
 
     return NextResponse.json(serializeDivision(created), { status: 201 });

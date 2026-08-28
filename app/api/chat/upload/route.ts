@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
 import path from 'path';
 import { getServerUser } from '@/lib/serverAuth';
-import { ensureUploadRoot } from '@/lib/documentStorage';
+import { ensureChatAttachmentsBucket, uploadChatAttachment } from '@/lib/supabaseAdmin';
+import { canAccessChatConversation } from '@/lib/chatAuthorization';
 
 const DEFAULT_MAX = 10 * 1024 * 1024; // 10MB
 // allow common images, documents, text and audio. Support wildcards (image/*, audio/*)
@@ -38,16 +38,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Missing parameters' }, { status: 400 });
     }
 
+    const requestedType = String(body.conversationType || '');
+    const conversationIdValue = String(conversationId);
+    const conversationType = requestedType === 'group' ? 'group' : 'dm';
+    const canAccess = await canAccessChatConversation(user, conversationType, conversationIdValue)
+      || (!requestedType && await canAccessChatConversation(user, 'group', conversationIdValue));
+    if (!canAccess) {
+      return NextResponse.json({ ok: false, error: 'Conversation inaccessible' }, { status: 403 });
+    }
+
     // decode buffer
     const buffer = Buffer.from(contentBase64, 'base64');
     const actualSize = buffer.length;
     const declaredSize = typeof contentSize === 'number' ? Number(contentSize) : null;
 
     const maxSize = DEFAULT_MAX;
-    if (declaredSize && declaredSize > maxSize) {
+    if (declaredSize !== null && (!Number.isFinite(declaredSize) || declaredSize < 1 || declaredSize > maxSize)) {
       return NextResponse.json({ ok: false, error: 'File too large' }, { status: 413 });
     }
-    if (actualSize > maxSize) {
+    if (actualSize < 1 || actualSize > maxSize) {
       return NextResponse.json({ ok: false, error: 'File too large' }, { status: 413 });
     }
 
@@ -63,19 +72,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'File type not allowed' }, { status: 400 });
     }
 
-    // ensure base upload root
-    const root = ensureUploadRoot();
-    const chatDir = path.join(root, 'chat', String(conversationId));
-    if (!fs.existsSync(chatDir)) fs.mkdirSync(chatDir, { recursive: true });
-
     const safeName = sanitizeFileName(filename);
-    const targetPath = path.join(chatDir, safeName);
+    const storagePath = `${String(conversationId)}/${Date.now()}-${safeName}`;
+    await ensureChatAttachmentsBucket();
+    const fileBody = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+    await uploadChatAttachment(storagePath, fileBody, mime);
+    const privateUrl = `/api/chat/download?path=${encodeURIComponent(storagePath)}`;
 
-    fs.writeFileSync(targetPath, buffer);
-
-    const publicUrl = path.posix.join('/uploads', 'chat', String(conversationId), safeName);
-
-    return NextResponse.json({ ok: true, url: publicUrl, name: safeName });
+    return NextResponse.json({ ok: true, url: privateUrl, name: safeName });
   } catch (e) {
     console.error('chat/upload error', e);
     return NextResponse.json({ ok: false, error: 'Server error' }, { status: 500 });

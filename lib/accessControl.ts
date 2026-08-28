@@ -305,6 +305,7 @@ export const routePermissions: Record<string, PortalPermission> = {
   '/documents': 'documents',
   '/reports': 'reports',
   '/settings': 'settings',
+  '/audit': 'settings',
   '/users': 'settings',
   '/users/create': 'settings',
   '/users/import': 'settings',

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerUser } from '@/lib/serverAuth';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
+import { canAccessChatConversation } from '@/lib/chatAuthorization';
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,6 +13,10 @@ export async function GET(req: NextRequest) {
     const conversationId = url.searchParams.get('id') ?? '';
     const page = Number(url.searchParams.get('page') ?? '1');
     const pageSize = Number(url.searchParams.get('pageSize') ?? '50');
+
+    if (!await canAccessChatConversation(user, conversationType === 'group' ? 'group' : 'dm', conversationId)) {
+      return NextResponse.json({ ok: false, error: 'Conversation inaccessible' }, { status: 403 });
+    }
 
     const where: any = {};
     if (conversationType === 'group') {
@@ -58,6 +61,10 @@ export async function POST(req: NextRequest) {
       if (!recipientId) {
         return NextResponse.json({ ok: false, error: 'Missing recipientId for direct message' }, { status: 400 });
       }
+    }
+
+    if (!await canAccessChatConversation(user, sendingToGroup ? 'group' : 'dm', String(sendingToGroup ? groupId : recipientId))) {
+      return NextResponse.json({ ok: false, error: 'Conversation inaccessible' }, { status: 403 });
     }
 
     if (!content && !attachmentUrl) {

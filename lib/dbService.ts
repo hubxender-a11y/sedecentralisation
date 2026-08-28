@@ -1,4 +1,5 @@
 import type { Agent, DocumentRecord, Direction, Service, Fonction, Grade } from './dataStore';
+import type { Prisma } from '@prisma/client';
 import prisma from './prisma';
 
 function normalizeAgent(agent: Agent): Agent {
@@ -212,7 +213,10 @@ export async function getAllDocuments(): Promise<(DocumentRecord & { agentName?:
   }
 }
 
-export async function createAgent(data: Omit<Agent, 'id' | 'createdAt'> & { id?: string }): Promise<Agent> {
+export async function createAgent(
+  data: Omit<Agent, 'id' | 'createdAt'> & { id?: string },
+  database: typeof prisma | Prisma.TransactionClient = prisma,
+): Promise<Agent> {
   const newAgent: Agent = {
     ...data,
     id: data.id || `ag-${Date.now()}`,
@@ -260,7 +264,7 @@ export async function createAgent(data: Omit<Agent, 'id' | 'createdAt'> & { id?:
         createdAt: new Date(newAgent.createdAt),
       };
 
-      const created = await prisma.agent.create({
+      const created = await database.agent.create({
         data: createData,
       });
 
@@ -269,6 +273,18 @@ export async function createAgent(data: Omit<Agent, 'id' | 'createdAt'> & { id?:
       console.error('Prisma createAgent failed', e);
       throw e instanceof Error ? e : new Error(String(e));
     }
+}
+
+export async function createAgentsInTransaction(
+  agents: Array<Omit<Agent, 'id' | 'createdAt'> & { id?: string }>,
+): Promise<Agent[]> {
+  return prisma.$transaction(async (transaction) => {
+    const createdAgents: Agent[] = [];
+    for (const agent of agents) {
+      createdAgents.push(await createAgent(agent, transaction));
+    }
+    return createdAgents;
+  });
 }
 
 export async function updateAgent(id: string, updates: Partial<Agent>): Promise<Agent | null> {

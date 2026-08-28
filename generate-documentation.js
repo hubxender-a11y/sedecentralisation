@@ -102,12 +102,12 @@ addHeading('1. Présentation générale');
 addParagraph('Le projet est une application web de gestion de dossiers agent, construite avec Next.js 15 et React 19. Il permet de créer des agents, gérer des documents, suivre le statut des dossiers, et afficher des notifications de vérification.');
 
 addHeading('2. Architecture technique');
-addParagraph('L\'architecture repose sur Next.js App Router avec des pages React côté client et des routes API côté serveur. La logique métier est séparée entre les pages de l\'interface, les APIs de gestion des données, et les helpers de stockage de fichiers. L\'accès aux données est géré via un accès MySQL direct, tandis que le stockage des fichiers est directement exposé via le dossier public/uploads.');
+addParagraph('L\'architecture repose sur Next.js App Router avec des pages React côté client et des routes API côté serveur. La logique métier est séparée entre les pages de l\'interface, les APIs de gestion des données, les services métier et les helpers de stockage. L\'accès aux données est géré par Prisma sur PostgreSQL Supabase, tandis que les documents sont stockés dans des buckets Supabase privés.');
 addBulletList([
   'Frontend: Next.js App Router, composants React avec `use client` pour les interactions.',
   'Backend: routes API dans app/api pour les agents, documents, notifications et recherche.',
-  'Base de données: MySQL/MariaDB avec accès direct via mysql2/promise, plus fallback mémoire possible via lib/dbService.ts.',
-  'Stockage de fichiers: dossier public/uploads, accessible statiquement via /uploads.',
+  'Base de données: PostgreSQL Supabase avec accès typé via Prisma.',
+  'Stockage de fichiers: Supabase Storage privé avec contrôle d’accès côté serveur.',
   'Documentation PDF: génération locale avec jsPDF et Node.js.',
 ]);
 

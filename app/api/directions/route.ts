@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerUser } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 function serializeDirection(direction: {
   id: string;
@@ -33,37 +34,6 @@ export async function GET() {
   }
 }
 
-async function ensureDirectionSeed() {
-  const defaults = [
-    {
-      id: 'dir-communication',
-      nom: 'Direction de la Communication',
-      description: 'Direction de la Communication',
-      statut: 'ACTIF',
-    },
-    {
-      id: 'dir-1',
-      nom: 'Direction Générale',
-      description: 'Direction générale du Secrétariat général',
-      statut: 'ACTIF',
-    },
-  ];
-
-  for (const item of defaults) {
-    const existing = await prisma.direction.findUnique({ where: { id: item.id } });
-    if (!existing) {
-      await prisma.direction.create({
-        data: {
-          id: item.id,
-          nom: item.nom,
-          description: item.description,
-          statut: item.statut,
-        },
-      });
-    }
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     const serverUser = await getServerUser(req);
@@ -78,17 +48,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: 'Seul un administrateur peut créer une direction.' }, { status: 403 });
     }
 
-    await ensureDirectionSeed();
-
     const body = await req.json();
+    const name = typeof body.nom === 'string' ? body.nom.trim() : '';
+    if (!name) {
+      return NextResponse.json({ error: 'Le nom de la direction est obligatoire.' }, { status: 400 });
+    }
+
     const created = await prisma.direction.create({
       data: {
         id: body.id || `dir-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        nom: body.nom || 'Nouvelle Direction',
+        nom: name,
         description: body.description || '',
         statut: body.statut || 'ACTIF',
       },
       select: { id: true, nom: true, description: true, statut: true, createdAt: true },
+    });
+
+    await writeAuditLog({
+      userId: serverUser.id,
+      action: 'CREATE_DIRECTION',
+      entityType: 'Direction',
+      entityId: created.id,
+      newValue: { nom: created.nom, statut: created.statut },
+      ipAddress: getRequestIp(req),
     });
 
     return NextResponse.json(serializeDirection(created), { status: 201 });

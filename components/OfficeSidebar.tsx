@@ -15,6 +15,7 @@ import {
   FileText,
   BarChart3,
   Settings,
+  ClipboardList,
   HelpCircle,
   ShieldCheck,
   Clock,
@@ -115,6 +116,7 @@ export default function OfficeSidebar() {
       items: [
         { label: 'Liste Utilisateurs', href: '/users', icon: Users, permission: 'settings' as PortalPermission },
         { label: 'Créer un utilisateur', href: '/users/create', icon: UserPlus, permission: 'settings' as PortalPermission },
+        { label: 'Journal d audit', href: '/audit', icon: ClipboardList, permission: 'settings' as PortalPermission },
       ],
     },
     { label: 'Workflows', href: '/workflows', icon: GitPullRequest, permission: 'settings' as PortalPermission },
@@ -129,7 +131,9 @@ export default function OfficeSidebar() {
     return allMenuItems
       .map((item) => {
         if (item.items && item.items.length > 0) {
-          const accessibleSubItems = item.items.filter((sub) => canAccessPath(sub.href, currentUser));
+          const accessibleSubItems = item.items.filter((sub) =>
+            canAccessPath(sub.href, currentUser) && (sub.href !== '/audit' || isSuperAdmin(currentUser))
+          );
           if (accessibleSubItems.length === 0) {
             return null;
           }

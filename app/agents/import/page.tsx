@@ -64,14 +64,42 @@ export default function AgentsImportPage() {
   }
 
   function parseCSV(text: string) {
-    const lines = text.split(/\r?\n/).filter(Boolean);
-    if (lines.length === 0) return setError('Fichier CSV vide');
-    const header = lines[0].split(',').map((h) => h.trim());
-    const parsed: ParsedRow[] = lines.slice(1).map((line) => {
-      const cols = line.split(',');
+    const records: string[][] = [];
+    let record: string[] = [];
+    let cell = '';
+    let quoted = false;
+
+    for (let index = 0; index < text.length; index += 1) {
+      const character = text[index];
+      const nextCharacter = text[index + 1];
+      if (character === '"' && quoted && nextCharacter === '"') {
+        cell += '"';
+        index += 1;
+      } else if (character === '"') {
+        quoted = !quoted;
+      } else if (character === ',' && !quoted) {
+        record.push(cell.trim());
+        cell = '';
+      } else if ((character === '\n' || character === '\r') && !quoted) {
+        if (character === '\r' && nextCharacter === '\n') index += 1;
+        record.push(cell.trim());
+        if (record.some((value) => value !== '')) records.push(record);
+        record = [];
+        cell = '';
+      } else {
+        cell += character;
+      }
+    }
+
+    record.push(cell.trim());
+    if (record.some((value) => value !== '')) records.push(record);
+    if (records.length === 0) return setError('Fichier CSV vide');
+
+    const header = records[0].map((h) => h.trim());
+    const parsed: ParsedRow[] = records.slice(1).map((columns) => {
       const row: ParsedRow = {};
-      header.forEach((h, i) => {
-        row[h] = (cols[i] || '').trim();
+      header.forEach((headerName, index) => {
+        row[headerName] = columns[index] || '';
       });
       return row;
     });
@@ -200,7 +228,8 @@ export default function AgentsImportPage() {
       if (!res.ok) {
         throw new Error(payload?.error || 'Import échoué');
       }
-      setSuccess(`${payload.imported || 0} agent(s) importé(s)`);
+      const skippedCount = Array.isArray(payload.skipped) ? payload.skipped.length : 0;
+      setSuccess(`${payload.imported || 0} agent(s) importé(s)${skippedCount ? `, ${skippedCount} ligne(s) ignorée(s)` : ''}`);
       setRows([]);
       setFileName(null);
     } catch (err) {

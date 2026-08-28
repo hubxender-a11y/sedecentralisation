@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export interface ServerPortalUser {
   id: string;
@@ -33,19 +34,46 @@ function sanitizeFullName(value: unknown, fallback?: unknown): string {
   return fallbackValue || 'Utilisateur';
 }
 
-export async function getServerUser(req: Request): Promise<ServerPortalUser | null> {
-  // Prefer explicit header (used by client buildAuthHeaders), but also accept a cookie
-  // named 'kana-current-user-id' for browser cookie-based hydration during dev/testing.
-  let userId = req.headers.get('x-current-user-id') || undefined;
+function getSessionSecret() {
+  const secret = process.env.AUTH_SESSION_SECRET || process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL;
+  if (!secret) throw new Error('AUTH_SESSION_SECRET is not configured');
+  return secret;
+}
 
-  if (!userId) {
+export function createSessionToken(userId: string) {
+  const signature = createHmac('sha256', getSessionSecret()).update(userId).digest('base64url');
+  return `${userId}.${signature}`;
+}
+
+function verifySessionToken(token: string) {
+  const separator = token.lastIndexOf('.');
+  if (separator <= 0) return null;
+
+  const userId = token.slice(0, separator);
+  const receivedSignature = token.slice(separator + 1);
+  const expectedSignature = createHmac('sha256', getSessionSecret()).update(userId).digest('base64url');
+  const received = Buffer.from(receivedSignature);
+  const expected = Buffer.from(expectedSignature);
+
+  if (received.length !== expected.length || !timingSafeEqual(received, expected)) return null;
+  return userId;
+}
+
+export async function getServerUser(req: Request): Promise<ServerPortalUser | null> {
+  let userId: string | undefined;
+  const cookieHeader = req.headers.get('cookie') ?? '';
+  const match = cookieHeader.match(/(?:^|; )kana-current-user-id=([^;]+)/);
+
+  if (match) {
     try {
-      const cookieHeader = req.headers.get('cookie') ?? '';
-      const match = cookieHeader.match(/(?:^|; )kana-current-user-id=([^;]+)/);
-      if (match) userId = decodeURIComponent(match[1]);
-    } catch (e) {
-      // ignore cookie parse errors
+      userId = verifySessionToken(decodeURIComponent(match[1])) ?? undefined;
+    } catch {
+      userId = undefined;
     }
+  }
+
+  if (!userId && process.env.NODE_ENV !== 'production') {
+    userId = req.headers.get('x-current-user-id') || undefined;
   }
 
   if (!userId) return null;

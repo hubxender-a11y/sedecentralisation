@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { hashPassword, migratePlaintextPasswords } from '@/lib/password';
+import { DEFAULT_PORTAL_ROLES } from '@/lib/portalRoles';
 
 export type PortalPermission = 'dashboard' | 'agents' | 'documents' | 'reports' | 'services' | 'directions' | 'functions' | 'settings';
 
@@ -21,13 +22,6 @@ interface AdminUser {
   status: 'Actif' | 'Inactif';
   passwordResetRequired?: boolean;
 }
-
-const defaultRoles: AdminRole[] = [
-  { id: 'role-super-admin', name: 'Super administrateur', description: 'Accès global et gestion complète du portail', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services', 'directions', 'functions', 'settings'] },
-  { id: 'role-admin', name: 'Administrateur', description: 'Accès total au portail', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services', 'directions', 'functions', 'settings'] },
-  { id: 'role-rh', name: 'RH', description: 'Gestion des agents et documents', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services'] },
-  { id: 'role-viewer', name: 'Lecteur', description: 'Consultation limitée', permissions: ['dashboard', 'reports'] },
-];
 
 const defaultUsers: AdminUser[] = [
   {
@@ -57,7 +51,7 @@ async function ensureDefaultRoles() {
   const existingRoles = await prisma.portalRole.findMany({ select: { id: true } });
   const existingRoleIds = new Set(existingRoles.map((row) => row.id));
 
-  for (const role of defaultRoles) {
+  for (const role of DEFAULT_PORTAL_ROLES) {
     if (!existingRoleIds.has(role.id)) {
       await prisma.portalRole.create({
         data: {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAgent, getAgents, getDirectionById, getFonctionById, getGradeById, getServiceById } from '@/lib/dbService';
-import { ensureAgentUploadDir } from '@/lib/documentStorage';
 import { canManageAgent, getServerUser } from '@/lib/serverAuth';
 import prisma from '@/lib/prisma';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 export async function GET(req: NextRequest) {
   const user = await getServerUser(req);
@@ -299,13 +299,14 @@ export async function POST(req: NextRequest) {
       throw new Error('Impossible de créer l\'agent');
     }
 
-    try {
-      const agentFullName = `${newAgent.nom} ${newAgent.postNom || ''} ${newAgent.prenom}`.trim();
-      const divisionName = selectedService ? selectedService.nom : (typeof body.service === 'string' ? body.service : (typeof directionObj?.nom === 'string' ? directionObj.nom : (typeof body.directionId === 'string' ? body.directionId : 'unknown')));
-      ensureAgentUploadDir(divisionName, newAgent.id, agentFullName);
-    } catch (error) {
-      console.error('Impossible de créer le dossier agent', error);
-    }
+    await writeAuditLog({
+      userId: serverUser.id,
+      action: 'CREATE_AGENT',
+      entityType: 'Agent',
+      entityId: newAgent.id,
+      newValue: { matricule: newAgent.matricule, statut: newAgent.statut },
+      ipAddress: getRequestIp(req),
+    });
 
     return NextResponse.json(newAgent, { status: 201 });
   } catch (error: unknown) {

@@ -4,8 +4,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model Agent {
@@ -55,6 +55,8 @@ model Agent {
   montantPrime    Float?           @default(0)
   documents       DocumentRecord[]
   presences       Presence[]
+  assignments     AgentAssignment[]
+  movements       AgentMovement[]
 
   @@map("agents")
 }
@@ -121,6 +123,44 @@ model Direction {
   @@map("directions")
 }
 
+model Province {
+  id        String   @id @db.VarChar(100)
+  nom       String   @db.VarChar(255)
+  statut    String   @default("ACTIF") @db.VarChar(50)
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  villes    Ville[]
+
+  @@index([statut])
+  @@map("provinces")
+}
+
+model Ville {
+  id         String   @id @db.VarChar(100)
+  nom        String   @db.VarChar(255)
+  provinceId String   @db.VarChar(100)
+  statut     String   @default("ACTIF") @db.VarChar(50)
+  createdAt  DateTime @default(now()) @db.Timestamp(0)
+  province   Province @relation(fields: [provinceId], references: [id])
+  communes   Commune[]
+
+  @@index([provinceId])
+  @@index([statut])
+  @@map("villes")
+}
+
+model Commune {
+  id        String   @id @db.VarChar(100)
+  nom       String   @db.VarChar(255)
+  villeId   String   @db.VarChar(100)
+  statut    String   @default("ACTIF") @db.VarChar(50)
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  ville     Ville    @relation(fields: [villeId], references: [id])
+
+  @@index([villeId])
+  @@index([statut])
+  @@map("communes")
+}
+
 model DocumentRecord {
   id         String   @id @default(cuid())
   agentId    String
@@ -151,6 +191,59 @@ model Presence {
   @@unique([agentId, date])
   @@index([date, serviceId])
   @@map("presences")
+}
+
+model AgentAssignment {
+  id                    String   @id @default(cuid())
+  agentId               String
+  previousDirectionId   String?  @db.VarChar(100)
+  previousDirectionName String?  @db.VarChar(255)
+  previousDivisionId    String?  @db.VarChar(100)
+  previousDivisionName  String?  @db.VarChar(255)
+  previousServiceId     String?  @db.VarChar(100)
+  previousServiceName   String?  @db.VarChar(255)
+  newDirectionId        String?  @db.VarChar(100)
+  newDirectionName      String?  @db.VarChar(255)
+  newDivisionId         String?  @db.VarChar(100)
+  newDivisionName       String?  @db.VarChar(255)
+  newServiceId          String?  @db.VarChar(100)
+  newServiceName        String?  @db.VarChar(255)
+  functionId            String?
+  functionName          String?
+  province              String?
+  city                  String?
+  commune               String?
+  effectiveDate         DateTime
+  reason                String?  @db.Text
+  documentReference     String?  @db.VarChar(255)
+  responsibleUserId     String?  @db.VarChar(100)
+  status                String   @default("BROUILLON") @db.VarChar(50)
+  observations          String?  @db.Text
+  createdAt             DateTime @default(now())
+  agent                 Agent    @relation(fields: [agentId], references: [id], onDelete: Restrict)
+
+  @@index([agentId, effectiveDate])
+  @@index([status])
+  @@map("agent_assignments")
+}
+
+model AgentMovement {
+  id                String   @id @default(cuid())
+  agentId           String
+  type              String   @db.VarChar(50)
+  previousSituation String?  @db.Text
+  newSituation      String?  @db.Text
+  movementDate      DateTime
+  reference         String?  @db.VarChar(255)
+  documentUrl       String?  @db.Text
+  userId            String?  @db.VarChar(100)
+  comment           String?  @db.Text
+  createdAt         DateTime @default(now())
+  agent             Agent    @relation(fields: [agentId], references: [id], onDelete: Restrict)
+
+  @@index([agentId, movementDate])
+  @@index([type])
+  @@map("agent_movements")
 }
 
 model PortalRole {
@@ -220,4 +313,21 @@ model ChatMessage {
 
   @@index([senderId])
   @@map("chat_messages")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String   @db.VarChar(100)
+  entityType String?  @db.VarChar(100)
+  entityId   String?  @db.VarChar(100)
+  oldValue   String?  @db.Text
+  newValue   String?  @db.Text
+  ipAddress  String?  @db.VarChar(45)
+  result     String   @default("SUCCESS") @db.VarChar(30)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
 }

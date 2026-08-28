@@ -9,13 +9,17 @@ export async function GET(req: NextRequest) {
     if (!q) return NextResponse.json({ items: [] });
 
     const serverUser = await getServerUser(req);
+    if (!serverUser) {
+      return NextResponse.json({ items: [], error: 'Utilisateur non autorisé.' }, { status: 401 });
+    }
+
     const agents = await getAgents();
     const items = agents
       .filter((a) => {
         const combined = `${a.nom} ${a.prenom} ${a.matricule || ''} ${a.telephone || ''}`.toLowerCase();
         return combined.includes(q);
       })
-      .filter((a) => (serverUser ? canManageAgent(serverUser, a) : true))
+      .filter((a) => canManageAgent(serverUser, a))
       .slice(0, 12)
       .map((a) => ({ id: a.id, nom: a.nom, prenom: a.prenom, matricule: a.matricule, montantPaiement: a.montantPaiement || 0 }));
 

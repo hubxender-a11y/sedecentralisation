@@ -6,6 +6,7 @@ import OfficeSidebar from '@/components/OfficeSidebar';
 import { CheckCircle, Database, Lock, Pencil, Plus, Save, Server, Settings, ShieldCheck, Trash2, Users } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/backend';
 import { buildAuthHeaders, getCurrentUser, hasPermission, isSuperAdmin } from '@/lib/accessControl';
+import { DEFAULT_PORTAL_ROLES } from '@/lib/portalRoles';
 
 type PortalPermission = 'dashboard' | 'agents' | 'documents' | 'reports' | 'services' | 'directions' | 'functions' | 'settings';
 
@@ -47,16 +48,6 @@ const portalModules: Array<{ key: PortalPermission; label: string }> = [
   { key: 'directions', label: 'Divisions' },
   { key: 'functions', label: 'Fonctions' },
   { key: 'settings', label: 'Paramètres' },
-];
-
-const defaultRoles: Role[] = [
-  { id: 'role-super-admin', name: 'Super administrateur', description: 'Accès global et gestion complète du portail', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services', 'directions', 'functions', 'settings'] },
-  { id: 'role-secretariat-general', name: 'Secrétaire générale', description: 'Vue globale des rapports par direction et supervision', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services', 'directions', 'functions', 'settings'] },
-  { id: 'role-chef-direction', name: 'Chef de direction', description: 'Rapports de sa direction et suivi des divisions', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services'] },
-  { id: 'role-chef-division', name: 'Chef de division', description: 'Rapports de ses bureaux et suivi des agents', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services'] },
-  { id: 'role-chef-bureau', name: 'Chef de bureau', description: 'Gestion des agents de son bureau', permissions: ['dashboard', 'agents', 'documents', 'reports'] },
-  { id: 'role-rh', name: 'RH', description: 'Gestion des agents et documents', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services'] },
-  { id: 'role-viewer', name: 'Lecteur', description: 'Consultation limitée', permissions: ['dashboard', 'reports'] },
 ];
 
 export default function SettingsPage() {
@@ -163,7 +154,7 @@ export default function SettingsPage() {
     let cancelled = false;
 
     async function loadAdminState() {
-      let nextState: AdminState = { roles: defaultRoles, users: [] };
+      let nextState: AdminState = { roles: DEFAULT_PORTAL_ROLES, users: [] };
 
       try {
         const response = await fetch('/api/admin/state', {
@@ -172,7 +163,7 @@ export default function SettingsPage() {
         if (response.ok) {
           const data = (await response.json()) as Partial<AdminState>;
           nextState = {
-            roles: Array.isArray(data.roles) && data.roles.length > 0 ? (data.roles as Role[]) : defaultRoles,
+            roles: Array.isArray(data.roles) && data.roles.length > 0 ? (data.roles as Role[]) : DEFAULT_PORTAL_ROLES,
             users: Array.isArray(data.users) ? (data.users as UserAccount[]) : [],
           };
         }
@@ -230,10 +221,10 @@ export default function SettingsPage() {
         throw new Error('Impossible d’enregistrer la configuration dans la base de données.');
       }
 
-      setFeedback('Configuration enregistrée avec succès dans MySQL.');
+      setFeedback('Configuration enregistrée avec succès dans PostgreSQL.');
     } catch (error) {
       console.error('Erreur de sauvegarde admin state', error);
-      setFeedback('Erreur lors de l’enregistrement. Vérifiez la connexion à MySQL.');
+      setFeedback('Erreur lors de l’enregistrement. Vérifiez la connexion à PostgreSQL.');
     } finally {
       setSaved(true);
       setIsSaving(false);
@@ -332,7 +323,7 @@ export default function SettingsPage() {
       fullName: '',
       email: '',
       password: '',
-      roleId: selectedRole?.id ?? defaultRoles[0]?.id ?? '',
+      roleId: selectedRole?.id ?? DEFAULT_PORTAL_ROLES[0]?.id ?? '',
       directionId: currentUser?.directionId ?? '',
       divisionId: '',
       serviceId: '',

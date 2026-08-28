@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { canManageAgent, getServerUser } from '@/lib/serverAuth';
-import { createAgent } from '@/lib/dbService';
+import { createAgentsInTransaction } from '@/lib/dbService';
+import prisma from '@/lib/prisma';
+import type { Agent } from '@/lib/dataStore';
 
 interface AgentImportRow {
   nom: string;
@@ -31,13 +33,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Aucun agent à importer' }, { status: 400 });
     }
 
-    const createdAgents = [];
-    for (const row of agents) {
+    const matricules = agents
+      .map((row) => String(row.matricule || '').trim())
+      .filter(Boolean);
+    const duplicateMatricules = new Set(matricules.filter((matricule, index) => matricules.indexOf(matricule) !== index));
+    const existingAgents = duplicateMatricules.size > 0 || matricules.length > 0
+      ? await prisma.agent.findMany({ where: { matricule: { in: Array.from(new Set(matricules)) } }, select: { matricule: true } })
+      : [];
+    const existingMatricules = new Set(existingAgents.map((agent) => String(agent.matricule)));
+    const skipped: Array<{ row: number; reason: string }> = [];
+    const acceptedMatricules = new Set<string>();
+
+    const agentsToCreate: Array<Omit<Agent, 'id' | 'createdAt'> & { id?: string }> = [];
+    for (const [index, row] of agents.entries()) {
       const normalizedNom = String(row.nom || '').trim();
       const normalizedPrenom = String(row.prenom || '').trim();
       const normalizedEmail = String(row.email || '').trim();
 
       if (!normalizedNom && !normalizedPrenom && !normalizedEmail) {
+        skipped.push({ row: index + 1, reason: 'Ligne vide' });
+        continue;
+      }
+
+      const matricule = String(row.matricule || '').trim();
+      if (matricule && (duplicateMatricules.has(matricule) || existingMatricules.has(matricule) || acceptedMatricules.has(matricule))) {
+        skipped.push({ row: index + 1, reason: `Matricule déjà utilisé: ${matricule}` });
         continue;
       }
 
@@ -52,7 +72,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const agent = await createAgent({
+      agentsToCreate.push({
         id: `ag-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         nom: normalizedNom || fallbackLastName,
         postNom: row.postNom || '',
@@ -82,10 +102,12 @@ export async function POST(request: NextRequest) {
         statutPaiement: 'NON_PAYE',
         montantPaiement: 0,
       });
-      createdAgents.push(agent);
+      if (matricule) acceptedMatricules.add(matricule);
     }
 
-    return NextResponse.json({ ok: true, imported: createdAgents.length, agents: createdAgents });
+    const createdAgents = await createAgentsInTransaction(agentsToCreate);
+
+    return NextResponse.json({ ok: true, imported: createdAgents.length, skipped, agents: createdAgents });
   } catch (error) {
     console.error('Agent import failed', error);
     return NextResponse.json({ error: 'Erreur import agent' }, { status: 500 });

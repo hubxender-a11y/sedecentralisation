@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, isPasswordHash, migratePlaintextPasswords } from '@/lib/password';
 import { getServerUser } from '@/lib/serverAuth';
+import { DEFAULT_PORTAL_ROLES } from '@/lib/portalRoles';
 
 export type PortalPermission = 'dashboard' | 'agents' | 'documents' | 'reports' | 'services' | 'directions' | 'functions' | 'settings';
 
@@ -34,13 +35,6 @@ interface AdminState {
   users: AdminUser[];
 }
 
-const defaultRoles: AdminRole[] = [
-  { id: 'role-super-admin', name: 'Super administrateur', description: 'Accès global et gestion complète du portail', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services', 'directions', 'functions', 'settings'] },
-  { id: 'role-admin', name: 'Administrateur', description: 'Accès total au portail', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services', 'directions', 'functions', 'settings'] },
-  { id: 'role-rh', name: 'RH', description: 'Gestion des agents et documents', permissions: ['dashboard', 'agents', 'documents', 'reports', 'services'] },
-  { id: 'role-viewer', name: 'Lecteur', description: 'Consultation limitée', permissions: ['dashboard', 'reports'] },
-];
-
 const defaultUsers: AdminUser[] = [
   {
     id: 'user-admin',
@@ -63,65 +57,6 @@ const defaultUsers: AdminUser[] = [
     passwordResetRequired: true,
   },
 ];
-
-async function ensureTables() {
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS portal_roles (
-      id VARCHAR(100) PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description TEXT NULL,
-      permissions TEXT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )
-  `);
-
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS portal_users (
-      id VARCHAR(100) PRIMARY KEY,
-      full_name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL UNIQUE,
-      password VARCHAR(255) NOT NULL,
-      role_id VARCHAR(100) NULL,
-      direction_id VARCHAR(100) NULL,
-      direction_nom VARCHAR(255) NULL,
-      division_id VARCHAR(100) NULL,
-      division_nom VARCHAR(255) NULL,
-      service_id VARCHAR(100) NULL,
-      service_nom VARCHAR(255) NULL,
-      permissions TEXT NULL,
-      status VARCHAR(50) NOT NULL DEFAULT 'Actif',
-      password_reset_required TINYINT(1) NOT NULL DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )
-  `);
-
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS directions (
-      id VARCHAR(100) PRIMARY KEY,
-      nom VARCHAR(255) NOT NULL,
-      description TEXT NULL,
-      statut VARCHAR(50) NOT NULL DEFAULT 'ACTIF',
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  const alterStatements = [
-    `ALTER TABLE portal_users ADD COLUMN direction_id VARCHAR(100) NULL`,
-    `ALTER TABLE portal_users ADD COLUMN division_id VARCHAR(100) NULL`,
-    `ALTER TABLE portal_users ADD COLUMN division_nom VARCHAR(255) NULL`,
-    `ALTER TABLE portal_users ADD COLUMN service_id VARCHAR(100) NULL`,
-    `ALTER TABLE portal_users ADD COLUMN service_nom VARCHAR(255) NULL`,
-    `ALTER TABLE portal_users ADD COLUMN password_reset_required TINYINT(1) NOT NULL DEFAULT 0`,
-  ];
-
-  for (const sql of alterStatements) {
-    try {
-      await prisma.$executeRawUnsafe(sql);
-    } catch {}
-  }
-}
 
 function parsePermissions(raw: string | null): PortalPermission[] {
   if (!raw) return [];
@@ -146,7 +81,7 @@ async function ensureDefaultRoles() {
   const existingRoles = await prisma.portalRole.findMany({ select: { id: true } });
   const existingRoleIds = new Set(existingRoles.map((row) => row.id));
 
-  for (const role of defaultRoles) {
+  for (const role of DEFAULT_PORTAL_ROLES) {
     if (!existingRoleIds.has(role.id)) {
       await prisma.portalRole.create({
         data: {
@@ -257,7 +192,6 @@ async function ensureOnlyRequiredUsers() {
 }
 
 async function getState(): Promise<AdminState> {
-  await ensureTables();
   await migratePlaintextPasswords();
   await seedIfEmpty();
 
@@ -344,7 +278,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(state);
   } catch (error) {
     console.error('Admin state fetch failed', error);
-    return NextResponse.json({ roles: defaultRoles, users: [] });
+    return NextResponse.json({ roles: DEFAULT_PORTAL_ROLES, users: [] });
   }
 }
 
@@ -354,11 +288,12 @@ export async function POST(request: NextRequest) {
     if (!serverUser) {
       return NextResponse.json({ ok: false, message: 'Utilisateur non autorisé.' }, { status: 401 });
     }
+    if (!['role-super-admin', 'role-admin'].includes(serverUser.roleId)) {
+      return NextResponse.json({ ok: false, message: 'Droits administrateur requis.' }, { status: 403 });
+    }
 
     const payload = await request.json();
     const state = payload as AdminState;
-
-    await ensureTables();
 
     const existingUsers = await prisma.portalUser.findMany({
       select: {
@@ -386,8 +321,6 @@ export async function POST(request: NextRequest) {
         },
       ]),
     );
-
-    await prisma.portalRole.deleteMany({});
 
     const scopedSaveDirectionId = serverUser?.directionId;
     const incomingUsers = Array.isArray(state.users) ? state.users : [];
@@ -522,23 +455,38 @@ export async function POST(request: NextRequest) {
         })) as AdminUser[];
 
       usersToPersist = [...preservedUsers, ...usersToPersist];
-      await prisma.portalUser.deleteMany({ where: { directionId: scopedSaveDirectionId } });
-    } else {
-      await prisma.portalUser.deleteMany({});
     }
 
-    for (const role of state.roles || []) {
-      await prisma.portalRole.create({
-        data: {
-          id: role.id,
-          name: role.name,
-          description: role.description,
-          permissions: serializePermissions(role.permissions),
+    const incomingUserIds = new Set(usersToPersist.map((user) => String(user.id)));
+    const rolesToPersist = Array.isArray(state.roles) && state.roles.length > 0 ? state.roles : DEFAULT_PORTAL_ROLES;
+
+    await prisma.$transaction(async (transaction) => {
+      for (const role of rolesToPersist) {
+        await transaction.portalRole.upsert({
+          where: { id: role.id },
+          create: {
+            id: role.id,
+            name: role.name,
+            description: role.description,
+            permissions: serializePermissions(role.permissions),
+          },
+          update: {
+            name: role.name,
+            description: role.description,
+            permissions: serializePermissions(role.permissions),
+          },
+        });
+      }
+
+      await transaction.portalUser.updateMany({
+        where: {
+          ...(scopedSaveDirectionId ? { directionId: scopedSaveDirectionId } : {}),
+          id: { notIn: Array.from(incomingUserIds) },
         },
+        data: { status: 'Inactif' },
       });
-    }
 
-    for (const user of usersToPersist) {
+      for (const user of usersToPersist) {
       const hasPlainPassword = Boolean(user.password?.trim());
       const passwordValue = user.password?.trim();
       let storedPassword: string;
@@ -556,24 +504,41 @@ export async function POST(request: NextRequest) {
         resetRequired = true;
       }
 
-      await prisma.portalUser.create({
-        data: {
-          id: user.id,
-          fullName: user.fullName,
-          email: user.email,
-          password: storedPassword,
-          roleId: user.roleId,
-          directionId: user.directionId ?? null,
-          divisionId: user.divisionId ?? null,
-          divisionNom: user.divisionNom ?? null,
-          serviceId: user.serviceId ?? null,
-          serviceNom: user.serviceNom ?? null,
-          permissions: serializePermissions(user.permissions),
-          status: user.status,
-          password_reset_required: resetRequired,
-        },
-      });
+        await transaction.portalUser.upsert({
+          where: { id: user.id },
+          create: {
+            id: user.id,
+            fullName: user.fullName,
+            email: user.email,
+            password: storedPassword,
+            roleId: user.roleId,
+            directionId: user.directionId ?? null,
+            divisionId: user.divisionId ?? null,
+            divisionNom: user.divisionNom ?? null,
+            serviceId: user.serviceId ?? null,
+            serviceNom: user.serviceNom ?? null,
+            permissions: serializePermissions(user.permissions),
+            status: user.status,
+            password_reset_required: resetRequired,
+          },
+          update: {
+            fullName: user.fullName,
+            email: user.email,
+            password: storedPassword,
+            roleId: user.roleId,
+            directionId: user.directionId ?? null,
+            divisionId: user.divisionId ?? null,
+            divisionNom: user.divisionNom ?? null,
+            serviceId: user.serviceId ?? null,
+            serviceNom: user.serviceNom ?? null,
+            permissions: serializePermissions(user.permissions),
+            status: user.status,
+            password_reset_required: resetRequired,
+          },
+        });
+      }
     }
+    );
 
     return NextResponse.json({ ok: true });
   } catch (error) {

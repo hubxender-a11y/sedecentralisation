@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerUser } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 async function ensureDivisionForDirection(directionId: string, fallbackName?: string) {
   const direction = await prisma.direction.findUnique({ where: { id: directionId } });
@@ -171,6 +172,15 @@ export async function POST(req: NextRequest) {
         statut: true,
         createdAt: true,
       },
+    });
+
+    await writeAuditLog({
+      userId: serverUser.id,
+      action: 'CREATE_SERVICE',
+      entityType: 'Service',
+      entityId: created.id,
+      newValue: { nom: created.nom, directionId: created.directionId, divisionId: created.divisionId, statut: created.statut },
+      ipAddress: getRequestIp(req),
     });
 
     return NextResponse.json(serializeService(created), { status: 201 });

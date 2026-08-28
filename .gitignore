@@ -24,3 +24,6 @@ metadata.json
 build-*.txt
 standalone-*.txt
 public/uploads/
+
+.vercel
+.env*

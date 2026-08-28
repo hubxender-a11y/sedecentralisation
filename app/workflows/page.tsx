@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import OfficeHeader from '@/components/OfficeHeader';
 import OfficeSidebar from '@/components/OfficeSidebar';
-import { getCurrentUser, type AdminUser, filterByUserDirection } from '@/lib/accessControl';
+import { buildAuthHeaders, getCurrentUser, type AdminUser, filterByUserDirection } from '@/lib/accessControl';
 import {
   GitPullRequest,
   CheckCircle2,
@@ -34,13 +34,17 @@ export default function WorkflowsPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
 
-  async function loadPending() {
+  const loadPending = useCallback(async (user: AdminUser | null = currentUser) => {
     try {
       setLoading(true);
-      const res = await fetch(`${BACKEND_URL}/agents`);
+      const res = await fetch(`${BACKEND_URL}/agents`, {
+        credentials: 'same-origin',
+        headers: buildAuthHeaders(),
+      });
+      if (!res.ok) throw new Error(`Chargement impossible (${res.status})`);
       const data = await res.json();
       const list = Array.isArray(data) ? (data as Agent[]) : (data.data as Agent[]) || [];
-      const filtered = filterByUserDirection<Agent>(list, currentUser);
+      const filtered = filterByUserDirection<Agent>(list, user);
       setPendingAgents(
         filtered.filter((a) => a.statut === 'BROUILLON' || a.statut === 'VERIFICATION')
       );
@@ -49,7 +53,7 @@ export default function WorkflowsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [currentUser]);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,7 +63,7 @@ export default function WorkflowsPage() {
       if (!cancelled) {
         setCurrentUser(user);
       }
-      await loadPending();
+      await loadPending(user);
     }
 
     load();
@@ -67,16 +71,18 @@ export default function WorkflowsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadPending]);
 
   async function updateStatus(id: string, statut: 'VALIDE' | 'REJETE') {
     try {
-      await fetch(`${BACKEND_URL}/agents/${id}`, {
+      const response = await fetch(`${BACKEND_URL}/agents/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        headers: buildAuthHeaders('application/json'),
         body: JSON.stringify({ statut }),
       });
-      loadPending();
+      if (!response.ok) throw new Error(`Mise à jour impossible (${response.status})`);
+      await loadPending();
     } catch (err) {
       console.error(err);
     }

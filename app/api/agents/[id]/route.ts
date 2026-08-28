@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteAgent, getAgentById, getDirectionById, getFonctionById, getServiceById, updateAgent } from '@/lib/dbService';
 import { canManageAgent, getServerUser } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 export async function GET(
   req: NextRequest,
@@ -147,6 +148,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Impossible de mettre à jour l\'agent' }, { status: 500 });
     }
 
+    await writeAuditLog({
+      userId: serverUser.id,
+      action: 'UPDATE_AGENT',
+      entityType: 'Agent',
+      entityId: id,
+      oldValue: { statut: existingAgent.statut, directionId: existingAgent.directionId, serviceId: existingAgent.serviceId },
+      newValue: { statut: updatedAgent.statut, directionId: updatedAgent.directionId, serviceId: updatedAgent.serviceId },
+      ipAddress: getRequestIp(req),
+    });
+
     return NextResponse.json(updatedAgent);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur mise à jour';
@@ -174,5 +185,13 @@ export async function DELETE(
   }
 
   await deleteAgent(id);
+  await writeAuditLog({
+    userId: serverUser.id,
+    action: 'ARCHIVE_AGENT',
+    entityType: 'Agent',
+    entityId: id,
+    oldValue: { statut: agent.statut },
+    ipAddress: getRequestIp(req),
+  });
   return NextResponse.json({ success: true });
 }

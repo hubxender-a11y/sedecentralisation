@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyPassword } from '@/lib/password';
 import { seedAdminState } from '@/lib/adminState';
+import { createSessionToken } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 function normalizeFullName(value: unknown, fallback?: unknown): string {
   const raw = String(value ?? fallback ?? '').trim();
@@ -59,10 +61,12 @@ export async function POST(request: NextRequest) {
     `;
 
     if (!user || user.status !== 'Actif' || !user.password) {
+      await writeAuditLog({ action: 'LOGIN', result: 'FAILURE', ipAddress: getRequestIp(request), newValue: { email } });
       return NextResponse.json({ ok: false, message: 'Identifiants invalides ou compte inactif.' }, { status: 401 });
     }
 
     if (!verifyPassword(password, user.password)) {
+      await writeAuditLog({ action: 'LOGIN', userId: user.id, result: 'FAILURE', ipAddress: getRequestIp(request) });
       return NextResponse.json({ ok: false, message: 'Identifiants invalides ou compte inactif.' }, { status: 401 });
     }
 
@@ -85,13 +89,14 @@ export async function POST(request: NextRequest) {
 
     const res = NextResponse.json(payload);
     const secure = process.env.NODE_ENV === 'production';
-    res.cookies.set('kana-current-user-id', String(user.id), {
+    res.cookies.set('kana-current-user-id', createSessionToken(String(user.id)), {
       httpOnly: true,
       path: '/',
       sameSite: 'lax',
       secure,
       maxAge: 60 * 60 * 24 * 7,
     });
+    await writeAuditLog({ action: 'LOGIN', userId: user.id, ipAddress: getRequestIp(request) });
     return res;
   } catch (error) {
     console.error('Login failed', error);

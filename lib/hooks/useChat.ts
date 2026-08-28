@@ -33,6 +33,7 @@ export function useChat(conversationType: 'dm' | 'group', conversationId: string
   const baseInterval = opts?.pollInterval ?? 8000;
 
   const timeoutRef = useRef<number | null>(null);
+  const runFetchRef = useRef<(p?: number) => void>();
   const retryCountRef = useRef(0);
   const lastIdsRef = useRef<Set<string>>(new Set());
   const mountedRef = useRef(true);
@@ -46,7 +47,7 @@ export function useChat(conversationType: 'dm' | 'group', conversationId: string
 
   const scheduleNext = (delay: number) => {
     clearTimer();
-    timeoutRef.current = window.setTimeout(() => runFetch(page), delay);
+    timeoutRef.current = window.setTimeout(() => runFetchRef.current?.(page), delay);
   };
 
   const handleFetched = (items: ChatMessage[]) => {
@@ -90,6 +91,10 @@ export function useChat(conversationType: 'dm' | 'group', conversationId: string
       }
     }, [conversationId, conversationType, baseInterval, pageSize]);
 
+  useEffect(() => {
+    runFetchRef.current = runFetch;
+  }, [runFetch]);
+
   const startPolling = useCallback(() => {
     clearTimer();
     retryCountRef.current = 0;
@@ -104,6 +109,8 @@ export function useChat(conversationType: 'dm' | 'group', conversationId: string
 
   useEffect(() => {
     mountedRef.current = true;
+    // Polling intentionally starts from the effect after the conversation is mounted.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     startPolling();
     return () => {
       mountedRef.current = false;

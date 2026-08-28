@@ -9,29 +9,31 @@
 
 Le serveur local XAMPP ne doit pas etre expose sur Internet.
 
-## Migration obligatoire avant le deploiement
+## Etat de la migration
 
-Le projet utilise actuellement MySQL et des appels SQL directs. Il faut donc:
+Le runtime de l'application utilise Prisma avec PostgreSQL sur Supabase. Les routes
+de production ne doivent pas utiliser `lib/mysql.ts` ni des requetes SQL MySQL.
+Ces fichiers sont conserves uniquement pour les anciens scripts locaux d'inspection
+et d'import, qui ne sont pas charges par Next.js en production.
 
-1. Creer un projet Supabase.
-2. Remplacer le provider Prisma `mysql` par `postgresql` et adapter les types SQL incompatibles.
-3. Remplacer les appels du helper `lib/mysql.ts` par Prisma ou le client Supabase.
-4. Remplacer l'ecriture dans `public/uploads` par Supabase Storage.
-5. Migrer les donnees XAMPP vers PostgreSQL et verifier les comptes administrateurs.
+Le schema Prisma utilise les variables Vercel creees par l'integration Supabase:
 
-Une fois le schema adapte, depuis un environnement disposant de l'URL Supabase, executer:
+- `POSTGRES_PRISMA_URL` pour la connexion pooler Prisma.
+- `POSTGRES_URL_NON_POOLING` pour la connexion directe.
+
+Avant une evolution du schema, verifier la base cible puis executer depuis un
+environnement autorise:
 
 ```bash
+npx prisma generate
 npx prisma db push
 ```
-
-Importer ensuite les donnees existantes avant de rendre le service public.
 
 ## Deploiement Vercel
 
 1. Pousser le projet dans un depot GitHub prive.
 2. Dans Vercel, choisir **Add New > Project** et selectionner le depot.
-3. Ajouter `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` et `GEMINI_API_KEY` dans les variables d'environnement.
+3. Configurer `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING`, les variables Supabase publiques et `GEMINI_API_KEY`.
 4. Definir `APP_URL` avec l'URL HTTPS Vercel.
 5. Deployer puis tester la connexion, les agents et les documents.
 
