@@ -318,7 +318,7 @@ export const routePermissions: Record<string, PortalPermission> = {
 
 export function canAccessPath(pathname: string, user: AdminUser | null | undefined) {
   const normalized = pathname === '/' ? '/' : pathname.split('?')[0].split('#')[0];
-  const permission = routePermissions[normalized];
+  const permission = routePermissions[normalized] ?? (normalized.startsWith('/modules/') ? 'settings' : undefined);
   if (!permission) return true;
   if ((normalized === '/directions' || normalized === '/divisions') && !isSuperAdmin(user)) {
     return false;
