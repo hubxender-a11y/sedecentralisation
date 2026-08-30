@@ -169,6 +169,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const provinceId = typeof body.provinceId === 'string' && body.provinceId.trim()
+      ? body.provinceId.trim()
+      : (typeof body.districtId === 'string' && body.districtId.trim() ? body.districtId.trim() : undefined);
+
     const selectedDirection = resolvedDirectionId ? await getDirectionById(resolvedDirectionId) : undefined;
     const selectedDivision = divisionId ? await prisma.division.findUnique({ where: { id: divisionId } }) : undefined;
     const serviceDirectionMatches = selectedService && resolvedDirectionId && (
@@ -283,6 +287,8 @@ export async function POST(req: NextRequest) {
       fonctionNom: fonctionObj ? fonctionObj.nom : undefined,
       serviceId: selectedService ? selectedService.id : serviceId || undefined,
       service: selectedService ? selectedService.nom : typeof body.service === 'string' ? body.service : undefined,
+      provinceId: provinceId,
+      districtId: provinceId,
       communeId: typeof body.communeId === 'string' ? body.communeId : undefined,
       avenue: typeof body.avenue === 'string' ? body.avenue : undefined,
       code: typeof body.code === 'string' ? body.code : undefined,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerUser } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 function serializeGrade(grade: {
   id: string;
@@ -40,7 +41,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: 'Utilisateur non autorisé.' }, { status: 401 });
     }
 
-    // Allow super-admin and other admin roles to create grades
     const roleId = String(serverUser.roleId || '').trim();
     const isAdminRole = roleId === 'role-super-admin' || roleId === 'role-admin' || roleId === 'role-secretariat-general';
 
@@ -49,14 +49,28 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    const nom = typeof body.nom === 'string' ? body.nom.trim() : '';
+    if (!nom) {
+      return NextResponse.json({ error: 'Le nom du grade est obligatoire.' }, { status: 400 });
+    }
+
     const created = await prisma.grade.create({
       data: {
-        id: body.id || `grd-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        nom: body.nom || 'Nouveau Grade',
-        description: body.description || '',
-        statut: body.statut || 'ACTIF',
+        id: typeof body.id === 'string' && body.id.trim() ? body.id.trim() : `grd-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        nom,
+        description: typeof body.description === 'string' ? body.description : '',
+        statut: typeof body.statut === 'string' && body.statut.trim() ? body.statut : 'ACTIF',
       },
       select: { id: true, nom: true, description: true, statut: true, createdAt: true },
+    });
+
+    await writeAuditLog({
+      userId: serverUser.id,
+      action: 'CREATE_GRADE',
+      entityType: 'Grade',
+      entityId: created.id,
+      newValue: { nom: created.nom, statut: created.statut },
+      ipAddress: getRequestIp(req),
     });
 
     return NextResponse.json(serializeGrade(created), { status: 201 });

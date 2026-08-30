@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerUser } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 function serializeGrade(grade: {
   id: string;
@@ -36,16 +37,35 @@ export async function PUT(
     }
 
     const { id } = await params;
+    const existing = await prisma.grade.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'Grade introuvable.' }, { status: 404 });
+    }
+
     const body = await req.json();
+    const nextNom = typeof body.nom === 'string' ? body.nom.trim() : existing.nom;
+    if (!nextNom) {
+      return NextResponse.json({ error: 'Le nom du grade est obligatoire.' }, { status: 400 });
+    }
 
     const updated = await prisma.grade.update({
       where: { id },
       data: {
-        nom: body.nom,
-        description: body.description,
-        statut: body.statut,
+        nom: nextNom,
+        description: typeof body.description === 'string' ? body.description : existing.description,
+        statut: typeof body.statut === 'string' && body.statut.trim() ? body.statut : existing.statut,
       },
       select: { id: true, nom: true, description: true, statut: true, createdAt: true },
+    });
+
+    await writeAuditLog({
+      userId: serverUser.id,
+      action: 'UPDATE_GRADE',
+      entityType: 'Grade',
+      entityId: id,
+      oldValue: { nom: existing.nom, statut: existing.statut },
+      newValue: { nom: updated.nom, statut: updated.statut },
+      ipAddress: getRequestIp(req),
     });
 
     return NextResponse.json(serializeGrade(updated));
@@ -72,6 +92,20 @@ export async function DELETE(
   }
 
   const { id } = await params;
+  const existing = await prisma.grade.findUnique({ where: { id } });
+  if (!existing) {
+    return NextResponse.json({ error: 'Grade introuvable.' }, { status: 404 });
+  }
+
   await prisma.grade.delete({ where: { id } });
+  await writeAuditLog({
+    userId: serverUser.id,
+    action: 'DELETE_GRADE',
+    entityType: 'Grade',
+    entityId: id,
+    oldValue: { nom: existing.nom, statut: existing.statut },
+    ipAddress: getRequestIp(req),
+  });
+
   return NextResponse.json({ success: true });
 }

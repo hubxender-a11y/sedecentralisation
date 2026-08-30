@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { canManageAgent, getServerUser } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 export async function POST(req: NextRequest) {
   const user = await getServerUser(req);
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  try {
-    const body = await req.json().catch(() => ({}));
-    const date = typeof body.date === 'string' && body.date ? body.date : new Date().toISOString().slice(0, 10);
-    const serviceId = typeof body.serviceId === 'string' ? body.serviceId : '';
-    const serviceNom = typeof body.serviceNom === 'string' ? body.serviceNom : '';
-    const directionId = typeof body.directionId === 'string' ? body.directionId : '';
-    const directionNom = typeof body.directionNom === 'string' ? body.directionNom : '';
+  const body = await req.json().catch(() => ({}));
+  const date = typeof body.date === 'string' && body.date ? body.date : new Date().toISOString().slice(0, 10);
+  const serviceId = typeof body.serviceId === 'string' ? body.serviceId : '';
+  const serviceNom = typeof body.serviceNom === 'string' ? body.serviceNom : '';
+  const directionId = typeof body.directionId === 'string' ? body.directionId : '';
+  const directionNom = typeof body.directionNom === 'string' ? body.directionNom : '';
 
+  try {
     const rows = await prisma.presence.findMany({
       where: { date },
       include: { agent: true },
@@ -94,6 +95,18 @@ export async function POST(req: NextRequest) {
 
     const pdfBytes = doc.output('arraybuffer');
     const pdfBuffer = Buffer.from(pdfBytes);
+
+    await writeAuditLog({
+      userId: user.id,
+      action: 'EXPORT_PRESENCE_PDF',
+      entityType: 'Presence',
+      entityId: `${date}:${requestedDirectionId || 'all'}:${serviceId || 'all'}`,
+      oldValue: { date, directionId: requestedDirectionId, serviceId },
+      newValue: { exportedRows: visibleRows.length },
+      ipAddress: getRequestIp(req),
+      result: 'SUCCESS',
+    });
+
     return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
@@ -105,6 +118,16 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('POST /api/presences/export-pdf failed:', error);
+    await writeAuditLog({
+      userId: user.id,
+      action: 'EXPORT_PRESENCE_PDF',
+      entityType: 'Presence',
+      entityId: `${date}:${directionId || 'all'}:${serviceId || 'all'}`,
+      oldValue: { date, directionId, serviceId },
+      newValue: { error: 'export_pdf_failed' },
+      ipAddress: getRequestIp(req),
+      result: 'FAILURE',
+    });
     return NextResponse.json({ error: 'Impossible de générer le rapport PDF.' }, { status: 500 });
   }
 }

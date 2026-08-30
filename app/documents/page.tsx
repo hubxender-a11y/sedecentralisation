@@ -27,12 +27,29 @@ type DocumentItem = {
   service?: string;
 };
 
+function getDocumentCategoryLabel(type?: string) {
+  if (!type) return 'AUTRE';
+  if (type.includes('/')) {
+    return type.split('/')[1]?.toUpperCase() || 'FILE';
+  }
+  return type.toUpperCase();
+}
+
+function getDocumentCategoryValue(type?: string) {
+  const normalized = (type || '').toUpperCase();
+  if (!normalized) return 'AUTRE';
+  if (normalized.includes('PDF')) return 'DOCUMENT';
+  if (normalized.includes('JPEG') || normalized.includes('PNG') || normalized.includes('WEBP')) return 'IMAGE';
+  return normalized;
+}
+
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [search, setSearch] = useState('');
   const [selectedDirection, setSelectedDirection] = useState('');
   const [selectedAgent, setSelectedAgent] = useState('');
   const [selectedAgentId, setSelectedAgentId] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
 
@@ -68,6 +85,10 @@ export default function DocumentsPage() {
     new Set(documents.map((doc) => doc.agentName || '').filter(Boolean))
   );
 
+  const categories = Array.from(
+    new Set(documents.map((doc) => getDocumentCategoryValue(doc.type)).filter(Boolean))
+  );
+
   const filteredDocs = documents.filter((doc) => {
     const matchesSearch = doc.name.toLowerCase().includes(search.toLowerCase());
     const matchesDirection = selectedDirection
@@ -76,7 +97,10 @@ export default function DocumentsPage() {
     const matchesAgent = selectedAgent
       ? doc.agentName === selectedAgent
       : true;
-    return matchesSearch && matchesDirection && matchesAgent;
+    const matchesCategory = selectedCategory
+      ? getDocumentCategoryValue(doc.type) === selectedCategory
+      : true;
+    return matchesSearch && matchesDirection && matchesAgent && matchesCategory;
   });
 
   const groupedByAgent = filteredDocs.reduce(
@@ -180,6 +204,24 @@ export default function DocumentsPage() {
                     ))}
                   </select>
                 </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label style={{ fontSize: '12px', color: '#475569', marginBottom: '4px' }}>
+                    Catégorie documentaire
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', minWidth: '180px' }}
+                  >
+                    <option value="">Toutes catégories</option>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -278,8 +320,8 @@ export default function DocumentsPage() {
                         </div>
                         <div className="document-meta">
                           <strong>{doc.name}</strong>
-                          <small>{doc.type} • {doc.size}</small>
-                          <span className="document-type-pill">{doc.type.split('/')[1]?.toUpperCase() || 'FILE'}</span>
+                          <small>{getDocumentCategoryLabel(doc.type)} • {doc.size}</small>
+                          <span className="document-type-pill">{getDocumentCategoryLabel(doc.type)}</span>
                           <span style={{ display: 'block', marginTop: '8px', color: '#64748b', fontSize: '12px' }}>
                             Dossier : {getAgentFolderFromUrl(doc.url)}
                           </span>

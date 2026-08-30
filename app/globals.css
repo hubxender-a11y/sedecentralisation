@@ -383,8 +383,69 @@ body {
   border: 1px solid #fecaca;
   border-radius: 14px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12px;
+}
+
+.sidebar-account {
+  width: 100%;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #fecaca;
+}
+
+.sidebar-account-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #7f1d1d;
+}
+
+.sidebar-account-heading strong,
+.sidebar-account-heading span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-account-heading span {
+  display: block;
+  max-width: 190px;
+  margin-top: 2px;
+  color: #991b1b;
+  font-size: 11px;
+}
+
+.sidebar-account-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.sidebar-account-action {
+  flex: 1;
+  height: 34px !important;
+  min-width: 0;
+  justify-content: center;
+  gap: 6px !important;
+  padding: 0 8px !important;
+  margin: 0 !important;
+  border: 1px solid #fecaca;
+  background: white;
+  color: #7f1d1d !important;
+  font-size: 11px !important;
+  cursor: pointer;
+}
+
+.sidebar-account-action:hover {
+  background: #fee2e2 !important;
+  transform: none !important;
+}
+
+.sidebar-account-action span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar-footer strong {

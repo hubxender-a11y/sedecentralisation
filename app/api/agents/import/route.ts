@@ -16,6 +16,8 @@ interface AgentImportRow {
   service?: string;
   email?: string;
   telephone?: string;
+  provinceId?: string;
+  districtId?: string;
   dateNaissance?: string;
 }
 
@@ -93,7 +95,8 @@ export async function POST(request: NextRequest) {
         fonctionNom: undefined,
         email: normalizedEmail || undefined,
         telephone: row.telephone || '',
-        districtId: undefined,
+        provinceId: row.provinceId || row.districtId,
+        districtId: row.districtId || row.provinceId,
         villeId: undefined,
         communeId: undefined,
         avenue: undefined,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerUser } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 function serializeFonction(fonction: {
   id: string;
@@ -45,14 +46,28 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    const nom = typeof body.nom === 'string' ? body.nom.trim() : '';
+    if (!nom) {
+      return NextResponse.json({ error: 'Le nom de la fonction est obligatoire.' }, { status: 400 });
+    }
+
     const created = await prisma.fonction.create({
       data: {
-        id: body.id || `fnc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        nom: body.nom || 'Nouvelle fonction',
-        description: body.description || '',
-        statut: body.statut || 'ACTIF',
+        id: typeof body.id === 'string' && body.id.trim() ? body.id.trim() : `fnc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        nom,
+        description: typeof body.description === 'string' ? body.description : '',
+        statut: typeof body.statut === 'string' && body.statut.trim() ? body.statut : 'ACTIF',
       },
       select: { id: true, nom: true, description: true, statut: true, createdAt: true },
+    });
+
+    await writeAuditLog({
+      userId: serverUser.id,
+      action: 'CREATE_FONCTION',
+      entityType: 'Fonction',
+      entityId: created.id,
+      newValue: { nom: created.nom, statut: created.statut },
+      ipAddress: getRequestIp(req),
     });
 
     return NextResponse.json(serializeFonction(created), { status: 201 });

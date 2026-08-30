@@ -21,9 +21,21 @@ import {
   Clock,
   ChevronDown,
   Plus,
+  Archive,
+  CalendarDays,
+  FileArchive,
+  FileInput,
+  FileOutput,
+  FolderOpen,
+  Landmark,
+  MapPin,
+  MessageSquare,
+  RefreshCw,
+  ScanLine,
+  UserCircle,
+  LogOut,
 } from 'lucide-react';
-import RdcLogo from '@/components/RdcLogo';
-import { canAccessPath, getCurrentUser, isSuperAdmin, type AdminUser, type PortalPermission } from '@/lib/accessControl';
+import { canAccessPath, clearCurrentUser, getCurrentUser, isSuperAdmin, type AdminUser, type PortalPermission } from '@/lib/accessControl';
 
 type Direction = {
   id: string;
@@ -87,42 +99,163 @@ export default function OfficeSidebar() {
   const allMenuItems: MenuItem[] = [
     { label: 'Tableau de bord', href: '/', icon: LayoutDashboard, permission: 'dashboard' as PortalPermission },
     {
-      label: 'Gestion Agents',
+      label: 'Gestion des agents',
       icon: Users,
       permission: 'agents' as PortalPermission,
       items: [
-        { label: 'Liste Agent', href: '/agents', icon: Users, permission: 'agents' as PortalPermission },
-        { label: 'Pointage quotidien', href: '/presence', icon: Clock, permission: 'agents' as PortalPermission },
-        { label: 'Journal des présences', href: '/presence/journal', icon: FileText, permission: 'agents' as PortalPermission },
-        { label: 'Nouveau Agent', href: '/agents/create', icon: UserPlus, permission: 'agents' as PortalPermission },
-        { label: 'Importer agents (XLS/CSV)', href: '/agents/import', icon: FileText, permission: 'agents' as PortalPermission },
-        { label: 'Grades', href: '/grade-stats', icon: ShieldCheck, permission: 'functions' as PortalPermission },
-        { label: 'Fonctions', href: '/fonctions', icon: Briefcase, permission: 'functions' as PortalPermission },
+        { label: 'Liste des agents', href: '/agents', icon: Users, permission: 'agents' as PortalPermission },
+        { label: 'Nouvel agent', href: '/agents/create', icon: UserPlus, permission: 'agents' as PortalPermission },
+        { label: 'Dossiers numériques', href: '/documents', icon: FileText, permission: 'documents' as PortalPermission },
+        { label: 'Agents archivés', href: '/agents?status=archive', icon: Archive, permission: 'agents' as PortalPermission },
+        { label: 'Importer des agents (Excel/CSV)', href: '/agents/import', icon: FileInput, permission: 'agents' as PortalPermission },
       ],
     },
     {
-      label: 'Direction',
-      icon: Network,
+      label: 'Organisation administrative',
+      icon: Building2,
       permission: 'directions' as PortalPermission,
       items: [
-        { label: 'Créer', href: '/directions?tab=create', icon: Plus, permission: 'directions' as PortalPermission },
-        { label: 'Liste', href: '/directions?tab=list', icon: Building2, permission: 'directions' as PortalPermission },
+        { label: 'Directions', href: '/directions?tab=list', icon: Building2, permission: 'directions' as PortalPermission },
+        { label: 'Divisions', href: '/divisions', icon: Network, permission: 'directions' as PortalPermission },
+        { label: 'Bureaux', href: '/services?view=bureaux', icon: Briefcase, permission: 'services' as PortalPermission },
+        { label: 'Services', href: '/services', icon: Briefcase, permission: 'services' as PortalPermission },
+        { label: 'Organigramme', href: '/directions?tab=organigramme', icon: Network, permission: 'directions' as PortalPermission },
       ],
     },
     {
-      label: 'Utilisateurs',
+      label: 'Organisation territoriale',
+      icon: Network,
+      permission: 'settings' as PortalPermission,
+      items: [
+        { label: 'Provinces', href: '/provinces', icon: Landmark, permission: 'settings' as PortalPermission },
+        { label: 'Villes', href: '/villes', icon: MapPin, permission: 'settings' as PortalPermission },
+        { label: 'Communes', href: '/communes', icon: MapPin, permission: 'settings' as PortalPermission },
+        { label: 'Territoires', href: '/villes?view=territoires', icon: MapPin, permission: 'settings' as PortalPermission },
+        { label: 'Secteurs', href: '/communes?view=secteurs', icon: MapPin, permission: 'settings' as PortalPermission },
+        { label: 'Chefferies', href: '/communes?view=chefferies', icon: MapPin, permission: 'settings' as PortalPermission },
+        { label: 'Groupements', href: '/communes?view=groupements', icon: MapPin, permission: 'settings' as PortalPermission },
+        { label: 'Villages', href: '/communes?view=villages', icon: MapPin, permission: 'settings' as PortalPermission },
+      ],
+    },
+    {
+      label: 'Gestion administrative',
+      icon: RefreshCw,
+      permission: 'settings' as PortalPermission,
+      items: [
+        { label: 'Affectations', href: '/workflows?view=affectations', icon: GitPullRequest, permission: 'settings' as PortalPermission },
+        { label: 'Mutations', href: '/workflows?view=mutations', icon: RefreshCw, permission: 'settings' as PortalPermission },
+        { label: 'Promotions', href: '/workflows?view=promotions', icon: Plus, permission: 'settings' as PortalPermission },
+        { label: 'Transferts', href: '/workflows?view=transferts', icon: FileOutput, permission: 'settings' as PortalPermission },
+        { label: 'Changements de fonction', href: '/workflows?view=fonctions', icon: Briefcase, permission: 'settings' as PortalPermission },
+        { label: 'Mises à disposition', href: '/workflows?view=mises-a-disposition', icon: FileInput, permission: 'settings' as PortalPermission },
+        { label: 'Réintégrations', href: '/workflows?view=reintegrations', icon: RefreshCw, permission: 'settings' as PortalPermission },
+        { label: 'Historique des mouvements', href: '/workflows?view=historique', icon: ClipboardList, permission: 'settings' as PortalPermission },
+      ],
+    },
+    {
+      label: 'Grades et fonctions',
+      icon: ShieldCheck,
+      permission: 'functions' as PortalPermission,
+      items: [
+        { label: 'Grades', href: '/grade-stats', icon: ShieldCheck, permission: 'functions' as PortalPermission },
+        { label: 'Fonctions', href: '/fonctions', icon: Briefcase, permission: 'functions' as PortalPermission },
+        { label: 'Catégories', href: '/grade-stats?view=categories', icon: ClipboardList, permission: 'functions' as PortalPermission },
+      ],
+    },
+    {
+      label: 'Documents et archives',
+      icon: FileArchive,
+      permission: 'documents' as PortalPermission,
+      items: [
+        { label: 'Documents administratifs', href: '/documents', icon: FileText, permission: 'documents' as PortalPermission },
+        { label: 'Dossiers des agents', href: '/agents', icon: FolderOpen, permission: 'agents' as PortalPermission },
+        { label: 'Scanner matériel', href: '/documents?view=scanner-materiel', icon: ScanLine, permission: 'documents' as PortalPermission },
+        { label: 'Scanner caméra', href: '/documents?view=scanner-camera', icon: ScanLine, permission: 'documents' as PortalPermission },
+        { label: 'Importer un document', href: '/documents?view=import', icon: FileInput, permission: 'documents' as PortalPermission },
+        { label: 'Documents à classer', href: '/documents?view=a-classer', icon: FolderOpen, permission: 'documents' as PortalPermission },
+        { label: 'Archives', href: '/documents?view=archives', icon: Archive, permission: 'documents' as PortalPermission },
+      ],
+    },
+    {
+      label: 'Présences et temps',
+      icon: Clock,
+      permission: 'agents' as PortalPermission,
+      items: [
+        { label: 'Pointage quotidien', href: '/presence', icon: Clock, permission: 'agents' as PortalPermission },
+        { label: 'Journal des présences', href: '/presence/journal', icon: FileText, permission: 'agents' as PortalPermission },
+        { label: 'Retards', href: '/presence/journal?view=retards', icon: Clock, permission: 'agents' as PortalPermission },
+        { label: 'Absences', href: '/presence/journal?view=absences', icon: CalendarDays, permission: 'agents' as PortalPermission },
+        { label: 'Statistiques de présence', href: '/reports?view=presence', icon: BarChart3, permission: 'reports' as PortalPermission },
+      ],
+    },
+    {
+      label: 'Congés et absences',
+      icon: CalendarDays,
+      permission: 'agents' as PortalPermission,
+      items: [
+        { label: 'Demandes de congé', href: '/workflows?view=conges-demandes', icon: CalendarDays, permission: 'agents' as PortalPermission },
+        { label: 'Congés en cours', href: '/workflows?view=conges-en-cours', icon: CalendarDays, permission: 'agents' as PortalPermission },
+        { label: 'Historique', href: '/workflows?view=conges-historique', icon: ClipboardList, permission: 'agents' as PortalPermission },
+        { label: 'Missions', href: '/workflows?view=missions', icon: Briefcase, permission: 'agents' as PortalPermission },
+        { label: 'Autorisations', href: '/workflows?view=autorisations', icon: FileText, permission: 'agents' as PortalPermission },
+      ],
+    },
+    {
+      label: 'Courriers',
+      icon: MessageSquare,
+      permission: 'documents' as PortalPermission,
+      items: [
+        { label: 'Courriers entrants', href: '/documents?view=courriers-entrants', icon: FileInput, permission: 'documents' as PortalPermission },
+        { label: 'Courriers sortants', href: '/documents?view=courriers-sortants', icon: FileOutput, permission: 'documents' as PortalPermission },
+        { label: 'Courriers internes', href: '/documents?view=courriers-internes', icon: MessageSquare, permission: 'documents' as PortalPermission },
+        { label: 'Courriers à traiter', href: '/workflows?view=courriers-a-traiter', icon: ClipboardList, permission: 'documents' as PortalPermission },
+        { label: 'Archives', href: '/documents?view=archives-courriers', icon: Archive, permission: 'documents' as PortalPermission },
+      ],
+    },
+    {
+      label: 'Circuit administratif / workflow',
+      icon: GitPullRequest,
+      permission: 'settings' as PortalPermission,
+      items: [
+        { label: 'Mes dossiers', href: '/workflows?view=mes-dossiers', icon: FolderOpen, permission: 'settings' as PortalPermission },
+        { label: 'Dossiers reçus', href: '/workflows?view=dossiers-recus', icon: FileInput, permission: 'settings' as PortalPermission },
+        { label: 'Dossiers à traiter', href: '/workflows?view=dossiers-a-traiter', icon: GitPullRequest, permission: 'settings' as PortalPermission },
+        { label: 'Dossiers transmis', href: '/workflows?view=dossiers-transmis', icon: FileOutput, permission: 'settings' as PortalPermission },
+        { label: 'Dossiers retournés', href: '/workflows?view=dossiers-retournes', icon: RefreshCw, permission: 'settings' as PortalPermission },
+        { label: 'Dossiers validés', href: '/workflows?view=dossiers-valides', icon: ShieldCheck, permission: 'settings' as PortalPermission },
+        { label: 'Historique du circuit', href: '/workflows?view=historique', icon: ClipboardList, permission: 'settings' as PortalPermission },
+      ],
+    },
+    { label: 'Notifications', href: '/chat', icon: ClipboardList, permission: 'settings' as PortalPermission },
+    {
+      label: 'Rapports et statistiques',
+      icon: BarChart3,
+      permission: 'reports' as PortalPermission,
+      items: [
+        { label: 'Vue générale', href: '/reports', icon: BarChart3, permission: 'reports' as PortalPermission },
+        { label: 'Rapport des agents', href: '/reports?view=agents', icon: Users, permission: 'reports' as PortalPermission },
+        { label: 'Rapport par direction', href: '/reports?view=directions', icon: Building2, permission: 'reports' as PortalPermission },
+        { label: 'Rapport par division', href: '/reports?view=divisions', icon: Network, permission: 'reports' as PortalPermission },
+        { label: 'Rapport par province', href: '/reports?view=provinces', icon: MapPin, permission: 'reports' as PortalPermission },
+        { label: 'Rapport des affectations', href: '/reports?view=affectations', icon: GitPullRequest, permission: 'reports' as PortalPermission },
+        { label: 'Rapport des mouvements', href: '/reports?view=mouvements', icon: RefreshCw, permission: 'reports' as PortalPermission },
+        { label: 'Rapport des présences', href: '/reports?view=presence', icon: Clock, permission: 'reports' as PortalPermission },
+        { label: 'Export PDF / Excel / CSV', href: '/reports?view=export', icon: FileOutput, permission: 'reports' as PortalPermission },
+      ],
+    },
+    {
+      label: 'Administration',
       icon: ShieldCheck,
       permission: 'settings' as PortalPermission,
       items: [
-        { label: 'Liste Utilisateurs', href: '/users', icon: Users, permission: 'settings' as PortalPermission },
-        { label: 'Créer un utilisateur', href: '/users/create', icon: UserPlus, permission: 'settings' as PortalPermission },
-        { label: 'Journal d audit', href: '/audit', icon: ClipboardList, permission: 'settings' as PortalPermission },
+        { label: 'Utilisateurs', href: '/users', icon: Users, permission: 'settings' as PortalPermission },
+        { label: 'Rôles', href: '/settings?tab=roles', icon: ShieldCheck, permission: 'settings' as PortalPermission },
+        { label: 'Permissions', href: '/settings?tab=permissions', icon: ShieldCheck, permission: 'settings' as PortalPermission },
+        { label: 'Journal d\'audit', href: '/audit', icon: ClipboardList, permission: 'settings' as PortalPermission },
+        { label: 'Paramètres système', href: '/settings', icon: Settings, permission: 'settings' as PortalPermission },
+        { label: 'Sauvegarde', href: '/settings?tab=backup', icon: Archive, permission: 'settings' as PortalPermission },
       ],
     },
-    { label: 'Workflows', href: '/workflows', icon: GitPullRequest, permission: 'settings' as PortalPermission },
-    { label: 'Documents', href: '/documents', icon: FileText, permission: 'documents' as PortalPermission },
-    { label: 'Rapports RH', href: '/reports', icon: BarChart3, permission: 'reports' as PortalPermission },
-    { label: 'Paramètres', href: '/settings', icon: Settings, permission: 'settings' as PortalPermission },
   ];
 
   const menuItems = useMemo<MenuItem[]>(() => {
@@ -146,6 +279,15 @@ export default function OfficeSidebar() {
       .filter((item): item is MenuItem => item !== null);
   }, [allMenuItems, currentUser]);
 
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/login', { method: 'DELETE', credentials: 'same-origin' });
+    } finally {
+      clearCurrentUser();
+      window.location.assign('/login');
+    }
+  }
+
   return (
     <aside className={`office-sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
       <button type="button" className="mobile-sidebar-overlay" aria-label="Fermer le menu" onClick={() => setMobileOpen(false)} />
@@ -153,6 +295,21 @@ export default function OfficeSidebar() {
         <ChevronDown size={18} style={{ transform: 'rotate(90deg)' }} />
       </button>
       <div style={{ padding: '18px 20px 0 20px' }}>
+        <div style={{
+          marginBottom: '18px',
+          padding: '12px 14px',
+          borderRadius: 12,
+          background: 'linear-gradient(135deg, rgba(127,29,29,0.12), rgba(127,29,29,0.03))',
+          border: '1px solid rgba(127,29,29,0.12)',
+          fontWeight: 800,
+          color: '#7f1d1d',
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+          fontSize: 13,
+        }}>
+          🏛 SIGAD
+        </div>
+
         {currentUser ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '18px' }}>
             <div style={{ width: 48, height: 48, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #ef4444, #991b1b)', color: 'white', fontWeight: 800, fontSize: 16 }}>
@@ -255,6 +412,27 @@ export default function OfficeSidebar() {
       </div>
 
       <div className="sidebar-footer">
+        {currentUser ? (
+          <div className="sidebar-account">
+            <div className="sidebar-account-heading">
+              <UserCircle size={20} />
+              <div>
+                <strong>{currentUser.fullName}</strong>
+                <span>{currentUser.email}</span>
+              </div>
+            </div>
+            <div className="sidebar-account-actions">
+              <Link href="/change-password" className="sidebar-account-action">
+                <Settings size={16} />
+                <span>Mon profil</span>
+              </Link>
+              <button type="button" className="sidebar-account-action" onClick={handleLogout}>
+                <LogOut size={16} />
+                <span>Déconnexion</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
         <button type="button" className="help-footer-btn" onClick={() => setShowHelpModal(true)}>
           <HelpCircle size={22} style={{ color: '#dc2626' }} />
           <div style={{ textAlign: 'left' }}>

@@ -24,15 +24,17 @@ export async function GET() {
       select: { id: true, nom: true, statut: true, createdAt: true },
     });
 
-    return NextResponse.json(provinces.map((province) => ({
-      id: province.id,
-      nom: province.nom,
-      statut: province.statut ?? 'ACTIF',
-      createdAt: province.createdAt ? province.createdAt.toISOString() : null,
-    })));
+    return NextResponse.json(
+      provinces.map((province) => ({
+        id: province.id,
+        nom: province.nom,
+        statut: province.statut ?? 'ACTIF',
+        createdAt: province.createdAt ? province.createdAt.toISOString() : null,
+      }))
+    );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur listing districts';
-    console.error('GET /api/districts failed:', error);
+    const message = error instanceof Error ? error.message : 'Erreur listing provinces';
+    console.error('GET /api/provinces failed:', error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -53,6 +55,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const nom = typeof body.nom === 'string' ? body.nom.trim() : '';
+
     if (!nom) {
       return NextResponse.json({ error: 'Le nom de la province est obligatoire.' }, { status: 400 });
     }

@@ -106,6 +106,7 @@ type AgentForm = {
   email: string;
   telephone: string;
 
+  provinceId: string;
   districtId: string;
   villeId: string;
   communeId: string;
@@ -202,6 +203,7 @@ export default function CreateAgentPage() {
     email: '',
     telephone: '',
 
+    provinceId: '',
     districtId: '',
     villeId: '',
     communeId: '',
@@ -302,11 +304,18 @@ export default function CreateAgentPage() {
 
   async function loadDistricts() {
     try {
-      const res = await fetch(`${API_BASE}/districts`);
+      const res = await fetch(`${API_BASE}/provinces`);
       const data = await res.json();
       setDistricts(toArray<District>(data));
     } catch (err) {
-      console.error('Unable to load districts', err);
+      console.error('Unable to load provinces', err);
+      try {
+        const fallback = await fetch(`${API_BASE}/districts`);
+        const fallbackData = await fallback.json();
+        setDistricts(toArray<District>(fallbackData));
+      } catch (fallbackErr) {
+        console.error('Unable to load legacy districts', fallbackErr);
+      }
     }
   }
 
@@ -894,6 +903,8 @@ export default function CreateAgentPage() {
         gradeNom: grades.find((grade) => grade.id === form.gradeId)?.nom || undefined,
         fonctionId: form.fonctionId || undefined,
         fonctionNom: fonctions.find((fonction) => fonction.id === form.fonctionId)?.nom || undefined,
+        provinceId: form.provinceId || form.districtId || undefined,
+        districtId: form.districtId || form.provinceId || undefined,
         communeId: form.communeId || undefined,
         avenue: form.avenue,
         code: form.code,

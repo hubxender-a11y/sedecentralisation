@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAgents } from '@/lib/dbService';
 import { canManageAgent, getServerUser } from '@/lib/serverAuth';
+import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 function localDate(date: Date) {
   const year = date.getFullYear();
@@ -152,12 +153,50 @@ export async function POST(req: NextRequest) {
       },
       select: { id: true, agentId: true, date: true, heure: true, serviceId: true, serviceNom: true },
     });
+
+    await writeAuditLog({
+      userId: user.id,
+      action: 'CREATE_PRESENCE',
+      entityType: 'Presence',
+      entityId: presence.id,
+      oldValue: null,
+      newValue: {
+        agentId: presence.agentId,
+        date: presence.date,
+        heure: presence.heure,
+        serviceId: presence.serviceId,
+        serviceNom: presence.serviceNom,
+      },
+      ipAddress: getRequestIp(req),
+      result: 'SUCCESS',
+    });
+
     return NextResponse.json({ ok: true, presence }, { status: 201 });
   } catch (error: any) {
     if (error?.code === 'P2002') {
+      await writeAuditLog({
+        userId: user.id,
+        action: 'CREATE_PRESENCE',
+        entityType: 'Presence',
+        entityId: agentId,
+        oldValue: { agentId, date },
+        newValue: { error: 'duplicate_presence' },
+        ipAddress: getRequestIp(req),
+        result: 'FAILURE',
+      });
       return NextResponse.json({ error: 'Cet agent est déjà pointé aujourd’hui.' }, { status: 409 });
     }
     console.error('POST /api/presences failed:', error);
+    await writeAuditLog({
+      userId: user.id,
+      action: 'CREATE_PRESENCE',
+      entityType: 'Presence',
+      entityId: agentId,
+      oldValue: { agentId, date },
+      newValue: { error: 'presence_create_failed' },
+      ipAddress: getRequestIp(req),
+      result: 'FAILURE',
+    });
     return NextResponse.json({ error: 'Impossible d’enregistrer le pointage.' }, { status: 500 });
   }
 }

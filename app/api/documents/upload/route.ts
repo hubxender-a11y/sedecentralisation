@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     const agentId = formData.get('agentId') as string | null;
+    const category = typeof formData.get('category') === 'string' ? String(formData.get('category')).trim() : '';
 
     if (!file || !agentId) {
       return NextResponse.json(
@@ -44,6 +45,8 @@ export async function POST(req: NextRequest) {
     if (!ALLOWED_DOCUMENT_TYPES.has(contentType)) {
       return NextResponse.json({ error: 'Type de document non autorisé.' }, { status: 400 });
     }
+
+    const normalizedCategory = category || 'AUTRE';
 
     const agent = await getAgentById(agentId);
     if (!agent) {
@@ -67,7 +70,7 @@ export async function POST(req: NextRequest) {
       agentId,
       name: file.name,
       size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-      type: contentType,
+      type: normalizedCategory,
       url,
       uploadedAt: new Date().toISOString(),
     };

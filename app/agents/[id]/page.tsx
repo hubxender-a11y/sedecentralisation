@@ -36,6 +36,13 @@ function getAgentFolderFromUrl(url?: string) {
   return segments.length >= 3 ? segments[2] : 'Dossier inconnu';
 }
 
+function formatDisplayDate(value?: string | null) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 type DocumentRecord = {
   id: string;
   name: string;
@@ -61,6 +68,51 @@ type Grade = {
   nom: string;
 };
 
+type Province = {
+  id: string;
+  nom: string;
+};
+
+type Ville = {
+  id: string;
+  nom: string;
+  provinceId?: string;
+  districtId?: string;
+};
+
+type Commune = {
+  id: string;
+  nom: string;
+  villeId?: string;
+};
+
+type AgentAssignmentItem = {
+  id: string;
+  effectiveDate?: string;
+  reason?: string;
+  status?: string;
+  previousDirectionName?: string;
+  newDirectionName?: string;
+  previousServiceName?: string;
+  newServiceName?: string;
+  functionName?: string;
+  province?: string;
+  city?: string;
+  commune?: string;
+  documentReference?: string;
+  observations?: string;
+};
+
+type AgentMovementItem = {
+  id: string;
+  type?: string;
+  movementDate?: string;
+  reference?: string;
+  comment?: string;
+  previousSituation?: string | Record<string, unknown>;
+  newSituation?: string | Record<string, unknown>;
+};
+
 type AgentDetails = {
   id: string;
   nom: string;
@@ -80,6 +132,10 @@ type AgentDetails = {
   fonctionNom?: string;
   serviceId?: string;
   service?: string;
+  provinceId?: string;
+  districtId?: string;
+  villeId?: string;
+  communeId?: string;
   email?: string;
   telephone: string;
   avenue?: string;
@@ -104,10 +160,32 @@ export default function AgentDetailsPage() {
   const [directions, setDirections] = useState<Direction[]>([]);
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [villes, setVilles] = useState<Ville[]>([]);
+  const [communes, setCommunes] = useState<Commune[]>([]);
+  const [assignments, setAssignments] = useState<AgentAssignmentItem[]>([]);
+  const [movements, setMovements] = useState<AgentMovementItem[]>([]);
+  const [assignmentForm, setAssignmentForm] = useState({
+    newDirectionId: '',
+    functionId: '',
+    effectiveDate: new Date().toISOString().slice(0, 10),
+    reason: '',
+    documentReference: '',
+    observations: '',
+  });
+  const [movementForm, setMovementForm] = useState({
+    type: 'AFFECTATION',
+    movementDate: new Date().toISOString().slice(0, 10),
+    reference: '',
+    comment: '',
+  });
+  const [submittingAssignment, setSubmittingAssignment] = useState(false);
+  const [submittingMovement, setSubmittingMovement] = useState(false);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [documentCategory, setDocumentCategory] = useState('LETTRE');
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState('');
@@ -188,14 +266,193 @@ export default function AgentDetailsPage() {
     }
   }
 
+  async function loadProvinces() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/provinces`);
+      if (!res.ok) throw new Error('Impossible de charger les provinces');
+      setProvinces(await res.json());
+    } catch (err) {
+      console.error('Unable to load provinces', err);
+      try {
+        const fallback = await fetch(`${BACKEND_URL}/districts`);
+        if (fallback.ok) {
+          setProvinces(await fallback.json());
+        }
+      } catch (fallbackErr) {
+        console.error('Unable to load legacy districts', fallbackErr);
+      }
+    }
+  }
+
+  async function loadVilles() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/villes`);
+      if (!res.ok) throw new Error('Impossible de charger les villes');
+      setVilles(await res.json());
+    } catch (err) {
+      console.error('Unable to load villes', err);
+    }
+  }
+
+  async function loadCommunes() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/communes`);
+      if (!res.ok) throw new Error('Impossible de charger les communes');
+      setCommunes(await res.json());
+    } catch (err) {
+      console.error('Unable to load communes', err);
+    }
+  }
+
+  async function loadAssignments() {
+    if (!id) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/agents/${id}/assignments`, { headers: buildAuthHeaders() });
+      if (!res.ok) throw new Error('Impossible de charger les affectations');
+      const payload = await res.json();
+      setAssignments(Array.isArray(payload.items) ? payload.items : []);
+    } catch (err) {
+      console.error('Unable to load assignments', err);
+      setAssignments([]);
+    }
+  }
+
+  async function loadMovements() {
+    if (!id) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/agents/${id}/movements`, { headers: buildAuthHeaders() });
+      if (!res.ok) throw new Error('Impossible de charger les mouvements');
+      const payload = await res.json();
+      setMovements(Array.isArray(payload.items) ? payload.items : []);
+    } catch (err) {
+      console.error('Unable to load movements', err);
+      setMovements([]);
+    }
+  }
+
+  async function createAssignmentRecord() {
+    if (!agent || !id) return;
+
+    const selectedDirection = directions.find((direction) => direction.id === assignmentForm.newDirectionId);
+    const selectedFunction = grades.find((grade) => grade.id === assignmentForm.functionId);
+
+    try {
+      setSubmittingAssignment(true);
+      const response = await fetch(`${BACKEND_URL}/agents/${id}/assignments`, {
+        method: 'POST',
+        headers: buildAuthHeaders('application/json'),
+        body: JSON.stringify({
+          newDirectionId: assignmentForm.newDirectionId || agent.directionId || undefined,
+          newDirectionName: assignmentForm.newDirectionId ? selectedDirection?.nom ?? agent.directionNom : agent.directionNom,
+          newServiceId: agent.serviceId || undefined,
+          newServiceName: agent.service || undefined,
+          functionId: assignmentForm.functionId || agent.fonctionId || undefined,
+          functionName: assignmentForm.functionId ? selectedFunction?.nom ?? agent.fonctionNom : agent.fonctionNom,
+          effectiveDate: assignmentForm.effectiveDate || new Date().toISOString().slice(0, 10),
+          reason: assignmentForm.reason || 'Affectation interne',
+          documentReference: assignmentForm.documentReference || undefined,
+          observations: assignmentForm.observations || undefined,
+          status: 'BROUILLON',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Erreur lors de l’enregistrement de l’affectation');
+      }
+
+      setAssignmentForm({
+        newDirectionId: '',
+        functionId: '',
+        effectiveDate: new Date().toISOString().slice(0, 10),
+        reason: '',
+        documentReference: '',
+        observations: '',
+      });
+      await Promise.all([loadAgent(), loadAssignments(), loadMovements()]);
+    } catch (error) {
+      console.error('Unable to create assignment', error);
+      window.alert(error instanceof Error ? error.message : 'Erreur lors de l’enregistrement de l’affectation');
+    } finally {
+      setSubmittingAssignment(false);
+    }
+  }
+
+  async function createMovementRecord() {
+    if (!agent || !id) return;
+
+    try {
+      setSubmittingMovement(true);
+      const payload = {
+        type: movementForm.type,
+        movementDate: movementForm.movementDate || new Date().toISOString().slice(0, 10),
+        reference: movementForm.reference || undefined,
+        comment: movementForm.comment || undefined,
+        previousSituation: {
+          directionId: agent.directionId,
+          directionNom: agent.directionNom,
+          divisionId: agent.directionId,
+          divisionNom: agent.directionNom,
+          serviceId: agent.serviceId,
+          service: agent.service,
+          fonctionId: agent.fonctionId,
+          fonctionNom: agent.fonctionNom,
+        },
+        newSituation: {
+          directionId: agent.directionId,
+          directionNom: agent.directionNom,
+          divisionId: agent.directionId,
+          divisionNom: agent.directionNom,
+          serviceId: agent.serviceId,
+          service: agent.service,
+          fonctionId: agent.fonctionId,
+          fonctionNom: agent.fonctionNom,
+        },
+      };
+
+      const response = await fetch(`${BACKEND_URL}/agents/${id}/movements`, {
+        method: 'POST',
+        headers: buildAuthHeaders('application/json'),
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Erreur lors de l’enregistrement du mouvement');
+      }
+
+      setMovementForm({
+        type: 'AFFECTATION',
+        movementDate: new Date().toISOString().slice(0, 10),
+        reference: '',
+        comment: '',
+      });
+      await Promise.all([loadAgent(), loadAssignments(), loadMovements()]);
+    } catch (error) {
+      console.error('Unable to create movement', error);
+      window.alert(error instanceof Error ? error.message : 'Erreur lors de l’enregistrement du mouvement');
+    } finally {
+      setSubmittingMovement(false);
+    }
+  }
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        // run initial loads in parallel
-        await Promise.all([loadAgent(), loadDirections(), loadDivisions()]);
+        await Promise.all([
+          loadAgent(),
+          loadDirections(),
+          loadDivisions(),
+          loadGrades(),
+          loadProvinces(),
+          loadVilles(),
+          loadCommunes(),
+          loadAssignments(),
+          loadMovements(),
+        ]);
       } catch (err) {
         console.error('Initial data loads failed', err);
       }
@@ -296,6 +553,7 @@ export default function AgentDetailsPage() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('agentId', agent.id);
+      formData.append('category', documentCategory || 'AUTRE');
 
       const res = await fetch(`${BACKEND_URL}/documents/upload`, {
         method: 'POST',
@@ -376,6 +634,11 @@ export default function AgentDetailsPage() {
     'Direction non affectée';
 
   const agentDirectionDisplay = agentDirectionName || resolvedDirectionName || 'Direction non affectée';
+  const provinceName =
+    provinces.find((province) => province.id === (agent.provinceId || agent.districtId))?.nom ||
+    'Province non renseignée';
+  const villeName = villes.find((ville) => ville.id === agent.villeId)?.nom || 'Ville non renseignée';
+  const communeName = communes.find((commune) => commune.id === agent.communeId)?.nom || 'Commune non renseignée';
 
   return (
     <div className="office-layout">
@@ -973,6 +1236,204 @@ export default function AgentDetailsPage() {
                 </div>
               </div>
 
+              {/* SECTION 3: HISTORIQUE OPERATIONNEL */}
+              <div className="agent-section-card">
+                <div className="agent-section-card-header">
+                  <Network size={20} />
+                  <h2>Historique d&apos;affectation &amp; mouvements</h2>
+                </div>
+
+                <div style={{ display: 'grid', gap: '18px' }}>
+                  <div>
+                    <label className="agent-field-label">Affectations enregistrées</label>
+                    <div style={{ display: 'grid', gap: '12px' }}>
+                      <div style={{ padding: '12px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontWeight: 700, marginBottom: '10px', color: '#0f172a' }}>Nouvelle affectation</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                          <div>
+                            <label className="agent-field-label">Direction</label>
+                            <select
+                              value={assignmentForm.newDirectionId}
+                              onChange={(event) => setAssignmentForm((prev) => ({ ...prev, newDirectionId: event.target.value }))}
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                            >
+                              <option value="">Choisir direction</option>
+                              {directions.map((direction) => (
+                                <option key={direction.id} value={direction.id}>{direction.nom}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="agent-field-label">Grade</label>
+                            <select
+                              value={assignmentForm.functionId}
+                              onChange={(event) => setAssignmentForm((prev) => ({ ...prev, functionId: event.target.value }))}
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                            >
+                              <option value="">Choisir grade</option>
+                              {grades.map((grade) => (
+                                <option key={grade.id} value={grade.id}>{grade.nom}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="agent-field-label">Effet le</label>
+                            <input
+                              type="date"
+                              value={assignmentForm.effectiveDate}
+                              onChange={(event) => setAssignmentForm((prev) => ({ ...prev, effectiveDate: event.target.value }))}
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                            />
+                          </div>
+                          <div>
+                            <label className="agent-field-label">Réf. document</label>
+                            <input
+                              value={assignmentForm.documentReference}
+                              onChange={(event) => setAssignmentForm((prev) => ({ ...prev, documentReference: event.target.value }))}
+                              placeholder="N° ordonnance / décision"
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                            />
+                          </div>
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <label className="agent-field-label">Motif</label>
+                            <textarea
+                              rows={3}
+                              value={assignmentForm.reason}
+                              onChange={(event) => setAssignmentForm((prev) => ({ ...prev, reason: event.target.value }))}
+                              placeholder="Motif de l’affectation"
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                            />
+                          </div>
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <label className="agent-field-label">Observations</label>
+                            <textarea
+                              rows={2}
+                              value={assignmentForm.observations}
+                              onChange={(event) => setAssignmentForm((prev) => ({ ...prev, observations: event.target.value }))}
+                              placeholder="Observations internes"
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                            />
+                          </div>
+                        </div>
+                        <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                          <button
+                            style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}
+                            onClick={createAssignmentRecord}
+                            disabled={submittingAssignment}
+                          >
+                            {submittingAssignment ? 'Enregistrement...' : 'Enregistrer l’affectation'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {assignments.length === 0 ? (
+                        <p className="agent-field-value">Aucune affectation enregistrée.</p>
+                      ) : (
+                        <div style={{ display: 'grid', gap: '10px' }}>
+                          {assignments.map((assignment) => (
+                            <div key={assignment.id} style={{ padding: '10px 12px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                              <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>
+                                {assignment.newDirectionName || 'Direction non renseignée'}
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#475569', display: 'grid', gap: '2px' }}>
+                                <span>Du: {assignment.previousDirectionName || '—'} → Au: {assignment.newDirectionName || '—'}</span>
+                                <span>Service: {assignment.newServiceName || '—'}</span>
+                                <span>Fonction: {assignment.functionName || '—'}</span>
+                                <span>Effet le: {formatDisplayDate(assignment.effectiveDate)}</span>
+                                {assignment.reason ? <span>Motif: {assignment.reason}</span> : null}
+                                {assignment.documentReference ? <span>Réf.: {assignment.documentReference}</span> : null}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="agent-field-label">Mouvements</label>
+                    <div style={{ display: 'grid', gap: '12px' }}>
+                      <div style={{ padding: '12px', borderRadius: '10px', background: '#fff7ed', border: '1px solid #fed7aa' }}>
+                        <div style={{ fontWeight: 700, marginBottom: '10px', color: '#7c2d12' }}>Ajouter un mouvement</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                          <div>
+                            <label className="agent-field-label">Type</label>
+                            <select
+                              value={movementForm.type}
+                              onChange={(event) => setMovementForm((prev) => ({ ...prev, type: event.target.value }))}
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                            >
+                              <option value="AFFECTATION">Affectation</option>
+                              <option value="MUTATION">Mutation</option>
+                              <option value="TRANSFERT">Transfert</option>
+                              <option value="PROMOTION">Promotion</option>
+                              <option value="CHANGEMENT_FONCTION">Changement de fonction</option>
+                              <option value="MISE_A_DISPOSITION">Mise à disposition</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="agent-field-label">Date</label>
+                            <input
+                              type="date"
+                              value={movementForm.movementDate}
+                              onChange={(event) => setMovementForm((prev) => ({ ...prev, movementDate: event.target.value }))}
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                            />
+                          </div>
+                          <div>
+                            <label className="agent-field-label">Référence</label>
+                            <input
+                              value={movementForm.reference}
+                              onChange={(event) => setMovementForm((prev) => ({ ...prev, reference: event.target.value }))}
+                              placeholder="N° décision / ordre"
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                            />
+                          </div>
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <label className="agent-field-label">Commentaire</label>
+                            <textarea
+                              rows={3}
+                              value={movementForm.comment}
+                              onChange={(event) => setMovementForm((prev) => ({ ...prev, comment: event.target.value }))}
+                              placeholder="Détail du mouvement"
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                            />
+                          </div>
+                        </div>
+                        <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                          <button
+                            style={{ background: '#f97316', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}
+                            onClick={createMovementRecord}
+                            disabled={submittingMovement}
+                          >
+                            {submittingMovement ? 'Enregistrement...' : 'Ajouter le mouvement'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {movements.length === 0 ? (
+                        <p className="agent-field-value">Aucun mouvement enregistré.</p>
+                      ) : (
+                        <div style={{ display: 'grid', gap: '10px' }}>
+                          {movements.map((movement) => (
+                            <div key={movement.id} style={{ padding: '10px 12px', borderRadius: '10px', background: '#fff7ed', border: '1px solid #fed7aa' }}>
+                              <div style={{ fontWeight: 700, color: '#7c2d12', marginBottom: '4px' }}>
+                                {movement.type || 'Mouvement'}
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#7c2d12', display: 'grid', gap: '2px' }}>
+                                <span>Date: {formatDisplayDate(movement.movementDate)}</span>
+                                {movement.reference ? <span>Réf.: {movement.reference}</span> : null}
+                                {movement.comment ? <span>Commentaire: {movement.comment}</span> : null}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* SECTION: STATUT DE PAIEMENT & REMUNERATION */}
               <div className="agent-section-card">
                 <div className="agent-section-card-header">
@@ -1100,8 +1561,11 @@ export default function AgentDetailsPage() {
 
                   <div className="agent-section-row-full">
                     <label className="agent-field-label">Adresse de résidence</label>
-                    <p className="agent-field-value">
-                      {agent.avenue || 'Adresse non renseignée'} {agent.code ? `(Code: ${agent.code})` : ''}
+                    <p className="agent-field-value" style={{ display: 'grid', gap: '6px' }}>
+                      <span><strong>Province:</strong> {provinceName}</span>
+                      <span><strong>Ville:</strong> {villeName}</span>
+                      <span><strong>Commune:</strong> {communeName}</span>
+                      <span>{agent.avenue || 'Adresse non renseignée'} {agent.code ? `(Code: ${agent.code})` : ''}</span>
                     </p>
                   </div>
                 </div>
@@ -1126,30 +1590,49 @@ export default function AgentDetailsPage() {
                     </h2>
                   </div>
 
-                  <label
-                    style={{
-                      background: '#eff6ff',
-                      color: '#2563eb',
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <Upload size={14} />
-                    {uploading ? 'Chargement...' : 'Ajouter document'}
-                    <input
-                      type="file"
-                      accept=".pdf,.png,.jpg,.jpeg"
-                      hidden
-                      onChange={handleFileUpload}
-                      disabled={uploading}
-                    />
-                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <select
+                      value={documentCategory}
+                      onChange={(event) => setDocumentCategory(event.target.value)}
+                      style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff' }}
+                    >
+                      <option value="LETTRE">Lettre</option>
+                      <option value="DECISION">Décision</option>
+                      <option value="ARRETE">Arrêté</option>
+                      <option value="DIPLOME">Diplôme</option>
+                      <option value="ATTESTATION">Attestation</option>
+                      <option value="AFFECTATION">Affectation</option>
+                      <option value="MUTATION">Mutation</option>
+                      <option value="PROMOTION">Promotion</option>
+                      <option value="CONTRAT">Contrat</option>
+                      <option value="AUTRE">Autre</option>
+                    </select>
+
+                    <label
+                      style={{
+                        background: '#eff6ff',
+                        color: '#2563eb',
+                        padding: '6px 14px',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <Upload size={14} />
+                      {uploading ? 'Chargement...' : 'Ajouter document'}
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        hidden
+                        onChange={handleFileUpload}
+                        disabled={uploading}
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

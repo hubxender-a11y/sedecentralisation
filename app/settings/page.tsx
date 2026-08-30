@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import OfficeHeader from '@/components/OfficeHeader';
 import OfficeSidebar from '@/components/OfficeSidebar';
 import { CheckCircle, Database, Lock, Pencil, Plus, Save, Server, Settings, ShieldCheck, Trash2, Users } from 'lucide-react';
@@ -51,6 +52,7 @@ const portalModules: Array<{ key: PortalPermission; label: string }> = [
 ];
 
 export default function SettingsPage() {
+  const searchParams = useSearchParams();
   const [backendUrl, setBackendUrl] = useState(BACKEND_URL);
   const [saved, setSaved] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -69,6 +71,13 @@ export default function SettingsPage() {
   const roleOptions = currentUser && !isSuperAdmin(currentUser) ? roles.filter((role) => role.id !== 'role-super-admin') : roles;
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingState, setIsLoadingState] = useState(true);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'roles' || tab === 'permissions' || tab === 'users') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const visibleUsers = useMemo(() => {
     if (currentUser?.directionId) {

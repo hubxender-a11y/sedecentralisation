@@ -37,6 +37,11 @@ export interface Grade {
   createdAt?: string;
 }
 
+export interface Province {
+  id: string;
+  nom: string;
+}
+
 export interface District {
   id: string;
   nom: string;
@@ -45,7 +50,8 @@ export interface District {
 export interface Ville {
   id: string;
   nom: string;
-  districtId: string;
+  provinceId?: string;
+  districtId?: string;
 }
 
 export interface Commune {
@@ -80,6 +86,7 @@ export interface Agent {
   fonctionNom?: string;
   email?: string;
   telephone: string;
+  provinceId?: string;
   districtId?: string;
   villeId?: string;
   communeId?: string;

@@ -5,6 +5,14 @@ import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
 const MOVEMENT_TYPES = ['RECRUTEMENT', 'AFFECTATION', 'MUTATION', 'TRANSFERT', 'PROMOTION', 'CHANGEMENT_FONCTION', 'MISE_A_DISPOSITION', 'SUSPENSION', 'REINTEGRATION', 'RETRAITE', 'SORTIE', 'DECES'] as const;
 
+function normalizeText(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  return null;
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getServerUser(request);
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
@@ -40,18 +48,49 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'La date du mouvement est obligatoire.' }, { status: 400 });
     }
 
-    const movement = await prisma.agentMovement.create({
-      data: {
-        agentId: id,
-        type,
-        previousSituation: body.previousSituation || null,
-        newSituation: body.newSituation || null,
-        movementDate: new Date(body.movementDate),
-        reference: body.reference || null,
-        documentUrl: body.documentUrl || null,
-        userId: user.id,
-        comment: body.comment || null,
-      },
+    const movement = await prisma.$transaction(async (tx) => {
+      const created = await tx.agentMovement.create({
+        data: {
+          agentId: id,
+          type,
+          previousSituation: normalizeText(body.previousSituation),
+          newSituation: normalizeText(body.newSituation),
+          movementDate: new Date(body.movementDate),
+          reference: normalizeText(body.reference),
+          documentUrl: normalizeText(body.documentUrl),
+          userId: user.id,
+          comment: normalizeText(body.comment),
+        },
+      });
+
+      const syncableTypes = ['AFFECTATION', 'MUTATION', 'TRANSFERT', 'PROMOTION', 'CHANGEMENT_FONCTION', 'MISE_A_DISPOSITION'];
+      if (syncableTypes.includes(type) && body.newSituation) {
+        const parsed = typeof body.newSituation === 'string' ? JSON.parse(body.newSituation) : body.newSituation;
+        const nextDirectionId = typeof parsed?.directionId === 'string' ? parsed.directionId : agent.directionId;
+        const nextDirectionName = typeof parsed?.directionNom === 'string' ? parsed.directionNom : agent.directionNom;
+        const nextServiceId = typeof parsed?.serviceId === 'string' ? parsed.serviceId : agent.serviceId;
+        const nextServiceName = typeof parsed?.service === 'string' ? parsed.service : agent.service;
+        const nextDivisionId = typeof parsed?.divisionId === 'string' ? parsed.divisionId : agent.divisionId;
+        const nextDivisionName = typeof parsed?.divisionNom === 'string' ? parsed.divisionNom : agent.divisionNom;
+        const nextFunctionId = typeof parsed?.fonctionId === 'string' ? parsed.fonctionId : agent.fonctionId;
+        const nextFunctionName = typeof parsed?.fonctionNom === 'string' ? parsed.fonctionNom : agent.fonctionNom;
+
+        await tx.agent.update({
+          where: { id },
+          data: {
+            directionId: nextDirectionId,
+            directionNom: nextDirectionName,
+            divisionId: nextDivisionId,
+            divisionNom: nextDivisionName,
+            serviceId: nextServiceId,
+            service: nextServiceName,
+            fonctionId: nextFunctionId,
+            fonctionNom: nextFunctionName,
+          },
+        });
+      }
+
+      return created;
     });
 
     await writeAuditLog({

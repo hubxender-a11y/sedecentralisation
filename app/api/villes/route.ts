@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { dbStore } from '@/lib/dataStore';
 import { getServerUser } from '@/lib/serverAuth';
 import { getRequestIp, writeAuditLog } from '@/lib/auditLog';
 
@@ -11,11 +10,12 @@ function serializeVille(ville: {
   statut: string | null;
   createdAt: Date | null;
 }) {
+  const provinceId = ville.provinceId ?? '';
   return {
     id: ville.id,
     nom: ville.nom,
-    provinceId: ville.provinceId ?? '',
-    districtId: ville.provinceId ?? '',
+    provinceId,
+    districtId: provinceId,
     statut: ville.statut ?? 'ACTIF',
     createdAt: ville.createdAt ? ville.createdAt.toISOString() : null,
   };
@@ -36,9 +36,10 @@ export async function GET() {
       statut: ville.statut ?? 'ACTIF',
       createdAt: ville.createdAt ? ville.createdAt.toISOString() : null,
     })));
-  } catch (error) {
-    console.error('GET /api/villes failed, falling back to memory data:', error);
-    return NextResponse.json(dbStore.villes);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur listing villes';
+    console.error('GET /api/villes failed:', error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
