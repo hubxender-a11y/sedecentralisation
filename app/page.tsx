@@ -21,6 +21,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, L
 import Pagination from '@/components/Pagination';
 import { BACKEND_URL } from '@/lib/backend';
 import Link from 'next/link';
+import DashboardOverview from '@/components/DashboardOverview';
 
 type Stats = {
   total: number;
@@ -358,6 +359,23 @@ export default function DashboardPage() {
   return (
     <div className="office-layout">
       <OfficeHeader />
+      <div className="office-body">
+        <OfficeSidebar />
+        <DashboardOverview
+          currentUser={currentUser}
+          stats={stats}
+          directionStats={directionStats}
+          agents={agentsList}
+          presence={presenceWidget}
+          loading={loading}
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="office-layout">
+      <OfficeHeader />
 
       <div className="office-body">
         <OfficeSidebar />
@@ -366,10 +384,10 @@ export default function DashboardPage() {
           {/* HEADER DASHBOARD */}
           <div className="dashboard-title">
             <div>
-              <h1>{currentUser?.directionNom ? currentUser.directionNom : 'Tableau de bord Kna+'}</h1>
+              <h1>{currentUser?.directionNom ? currentUser?.directionNom : 'Tableau de bord Kna+'}</h1>
               <p>
                 Bienvenue {currentUser?.fullName ?? 'utilisateur'}
-                {currentUser?.directionNom ? `, vous êtes dans la direction ${currentUser.directionNom}` : ''}
+                {currentUser?.directionNom ? `, vous êtes dans la direction ${currentUser?.directionNom}` : ''}
               </p>
             </div>
           </div>
