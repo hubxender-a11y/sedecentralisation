@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, BellRing, CheckCircle2, LogOut, Menu, Plus, Search, ShieldCheck, User, X } from 'lucide-react';
+import { ArrowLeft, BarChart3, BellRing, CheckCircle2, FileText, GitPullRequest, LogOut, Menu, Plus, Search, ShieldCheck, User, Users, X } from 'lucide-react';
 import RdcLogo from '@/components/RdcLogo';
 import { clearCurrentUser, getCurrentUser, type AdminUser, buildAuthHeaders } from '@/lib/accessControl';
 
@@ -378,6 +378,25 @@ export default function OfficeHeader() {
           <Plus size={18} />
           <span style={{ fontWeight: 700 }}>Nouveau</span>
         </Link>
+
+        <nav className="header-shortcuts" aria-label="Accès rapides">
+          <Link href="/agents" className="header-shortcut" title="Gestion des agents">
+            <Users size={17} />
+            <span>Agents</span>
+          </Link>
+          <Link href="/workflows" className="header-shortcut" title="Circuit administratif">
+            <GitPullRequest size={17} />
+            <span>Workflow</span>
+          </Link>
+          <Link href="/documents" className="header-shortcut" title="Documents et archives">
+            <FileText size={17} />
+            <span>Documents</span>
+          </Link>
+          <Link href="/reports" className="header-shortcut" title="Rapports et statistiques">
+            <BarChart3 size={17} />
+            <span>Rapports</span>
+          </Link>
+        </nav>
 
         <div style={{ position: 'relative' }}>
           <button
